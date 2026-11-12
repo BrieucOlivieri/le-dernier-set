@@ -449,6 +449,25 @@ header {
     transform: rotate(0.5deg);
 }
 
+.venue-option.venue-option-any {
+    grid-column: 1 / -1;
+    min-height: 76px;
+    transform: none;
+}
+
+.venue-any-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    place-items: center;
+    border-radius: 50%;
+    background: #eaf0e8;
+    color: var(--green);
+    font-size: 23px;
+    font-weight: 800;
+}
+
 .venue-option input {
     position: absolute;
     inset: 0;

@@ -88,14 +88,12 @@
               </button>
             </div>
             <div id="venue-field">
-              <label class="input-label" for="venue"
-                >Tu préfères quel bar ?</label
-              >
+              <span class="input-label" id="venue-label">Tu préfères quel bar ?</span>
               <div
                 class="venue-options"
                 id="venue-options"
                 role="radiogroup"
-                aria-label="Choix du bar"
+                aria-labelledby="venue-label"
               >
                 <label class="venue-option">
                   <input type="radio" name="venue" value="pavane" required />
@@ -110,6 +108,14 @@
                   <img class="venue-logo" src="assets/bryans.jpg" alt="" />
                   <span class="venue-copy"
                     ><strong>Le Bryan’s</strong><em>l’irlandais</em></span
+                  >
+                  <span class="venue-check" aria-hidden="true">✓</span>
+                </label>
+                <label class="venue-option venue-option-any">
+                  <input type="radio" name="venue" value="any" />
+                  <span class="venue-any-icon" aria-hidden="true">↔</span>
+                  <span class="venue-copy"
+                    ><strong>Peu importe</strong><em>Les deux me vont</em></span
                   >
                   <span class="venue-check" aria-hidden="true">✓</span>
                 </label>

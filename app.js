@@ -2,7 +2,7 @@
     'use strict';
     // 1. Configuration et textes
     const $ = (selector) => document.querySelector(selector);
-    const VENUES = { pavane: 'La Pavane', bryans: 'Le Bryan’s' };
+    const VENUES = { pavane: 'La Pavane', bryans: 'Le Bryan’s', any: 'Peu importe' };
     const VENUE_LOGOS = { pavane: 'assets/pavane.webp', bryans: 'assets/bryans.jpg' };
     const LOCATION_ICON = '📍';
     const REASONS = {
@@ -331,7 +331,7 @@
         const leader = bars.pavane === bars.bryans
             ? null
             : bars.pavane > bars.bryans ? 'pavane' : 'bryans';
-        for (const venue of Object.keys(VENUES)) {
+        for (const venue of Object.keys(bars)) {
             $('#' + venue + '-count').textContent = bars[venue];
             $('#' + venue + '-team').classList.toggle('is-leading', venue === leader);
         }
@@ -342,17 +342,17 @@
         } else {
             $('#venue-result').textContent = VENUES[leader] + ' en tête des préférences.';
         }
-        const missing = counts.yes - total;
+        const flexible = counts.yes - total;
         let detail = total
             ? 'Tendance indicative, rendez-vous à confirmer.'
             : 'Vote pour faire pencher la balance.';
-        if (missing) {
+        if (flexible) {
             detail +=
                 ' ' +
-                missing +
+                flexible +
                 ' partant' +
-                (missing > 1 ? 's n’ont' : ' n’a') +
-                ' pas encore précisé de bar.';
+                (flexible > 1 ? 's' : '') +
+                ' sans préférence de bar.';
         }
         if (counts.maybe) detail += ' Les « Peut-être » ne sont pas comptés.';
         $('#venue-detail').textContent = detail;
@@ -395,7 +395,9 @@
         }[vote];
         const detail = document.createElement('small');
         detail.textContent = {
-            yes: 'Ton bar préféré : ' + VENUES[venue] + '.',
+            yes: venue === 'any'
+                ? 'Les deux bars te vont.'
+                : 'Ton bar préféré : ' + VENUES[venue] + '.',
             maybe: 'On attend le verdict avant de commander.',
             no: 'Tu peux encore changer d’avis.',
         }[vote];
