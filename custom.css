@@ -162,14 +162,15 @@ header {
     display: inline-grid;
     gap: 2px;
     max-width: 100%;
-    margin-top: 19px;
-    padding: 11px 17px 12px;
-    border-radius: 14px;
-    background: var(--yellow);
-    box-shadow: 0 3px 0 #d5ad35;
+    margin-top: 17px;
+    padding: 8px 14px;
+    border-left: 3px solid var(--green);
+    border-radius: 0 9px 9px 0;
+    background: #eaf0e8;
 }
 
 .datebadge-label {
+    color: var(--green);
     font-size: var(--fs-label);
     font-weight: 850;
     letter-spacing: 1.1px;
@@ -177,13 +178,14 @@ header {
 }
 
 .datebadge #date {
-    font-size: var(--fs-lg);
+    font-size: var(--fs-md);
     font-weight: 850;
     line-height: 1.2;
     text-transform: capitalize;
 }
 
 .datebadge-note {
+    color: var(--muted);
     font-size: var(--fs-xs);
     line-height: 1.2;
 }
