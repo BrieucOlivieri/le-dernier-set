@@ -1619,9 +1619,20 @@ header {
     }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 600px) {
     .venue-options {
         grid-template-columns: 1fr;
+    }
+
+    .venue-option {
+        min-height: 78px;
+    }
+
+    .venue-copy strong,
+    .venue-copy em {
+        overflow: visible;
+        white-space: normal;
+        text-overflow: clip;
     }
 }
 
