@@ -356,7 +356,10 @@
         void notification.offsetWidth; // relance l'animation si on clique plusieurs fois
         notification.classList.add('is-visible');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => notification.classList.remove('is-visible'), vote === 'no' ? 7000 : 4500);
+        toastTimer = setTimeout(
+            () => notification.classList.remove('is-visible'),
+            vote === 'no' ? 4000 : 3000,
+        );
     }
 
     function clearForfaitStamp() {
