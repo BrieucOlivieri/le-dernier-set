@@ -159,19 +159,33 @@ header {
 }
 
 .datebadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    margin-top: 16px;
-    font-size: var(--fs-sm);
-    font-weight: 750;
+    display: inline-grid;
+    gap: 2px;
+    max-width: 100%;
+    margin-top: 19px;
+    padding: 11px 17px 12px;
+    border-radius: 14px;
+    background: var(--yellow);
+    box-shadow: 0 3px 0 #d5ad35;
 }
 
-.dot {
-    height: 8px;
-    width: 8px;
-    border-radius: 50%;
-    background: var(--green);
+.datebadge-label {
+    font-size: var(--fs-label);
+    font-weight: 850;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+}
+
+.datebadge #date {
+    font-size: var(--fs-lg);
+    font-weight: 850;
+    line-height: 1.2;
+    text-transform: capitalize;
+}
+
+.datebadge-note {
+    font-size: var(--fs-xs);
+    line-height: 1.2;
 }
 
 .poster {

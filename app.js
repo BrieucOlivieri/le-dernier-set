@@ -100,7 +100,8 @@
     // 2. Date du prochain jeudi et état de la session
     function upcomingThursday() {
         const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
-        date.setDate(date.getDate() + ((4 - date.getDay() + 7) % 7));
+        const daysAhead = (4 - date.getDay() + 7) % 7;
+        date.setDate(date.getDate() + (daysAhead === 0 && date.getHours() >= 23 ? 7 : daysAhead));
         return date;
     }
 
@@ -174,11 +175,16 @@
         }
     }
 
-    function refreshCurrentWeek() {
+    function ensureCurrentWeek() {
         if (dateKey(upcomingThursday()) !== week) {
             location.reload();
-            return;
+            return false;
         }
+        return true;
+    }
+
+    function refreshCurrentWeek() {
+        if (!ensureCurrentWeek()) return;
         void refreshSharedVotes();
     }
 
@@ -571,7 +577,7 @@
     }
 
     function confirmNo() {
-        if (!pendingNoName || !sharedVotesReady) return;
+        if (!pendingNoName || !sharedVotesReady || !ensureCurrentWeek()) return;
         const name = pendingNoName;
         const reason = document.querySelector('input[name="no-reason"]:checked')?.value || null;
         $('#no-dialog').close();
@@ -580,7 +586,7 @@
 
     function handleSubmit(event) {
         event.preventDefault();
-        if (!sharedVotesReady || voteMutationPending) return;
+        if (!sharedVotesReady || voteMutationPending || !ensureCurrentWeek()) return;
         const name = $('#name').value.trim();
         if (!name) {
             $('#name').setCustomValidity('Indique ton prénom pour répondre.');
@@ -603,7 +609,7 @@
     }
 
     async function removeResponse() {
-        if (!sharedVotesReady || !voteStore || voteMutationPending) return;
+        if (!sharedVotesReady || !voteStore || voteMutationPending || !ensureCurrentWeek()) return;
         voteMutationPending = true;
         voteVersion++;
         setVoteBusy(true);
@@ -638,6 +644,7 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshCurrentWeek();
         });
+        setInterval(ensureCurrentWeek, 60_000);
         document.querySelectorAll('.choice').forEach((button) => {
             button.addEventListener('click', () => chooseVote(button.dataset.vote));
         });
