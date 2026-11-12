@@ -42,4 +42,6 @@ Si Supabase est inaccessible, le site affiche une erreur et n'enregistre pas de 
 
 ## Mise en ligne
 
-Le site est publié sur **https://le-dernier-set-gsl.sproutingatlas1.chatgpt.site** via Sites. Son identifiant et son dossier statique sont déclarés dans `.openai/hosting.json`. Le dossier `dist/` est généré pour la publication à partir de `index.html`, `custom.css`, `app.js`, `vote-store.js`, `config.js` et `assets/` ; il est ignoré par le dépôt local. Le dossier `supabase/` sert à configurer la base et n'est pas publié.
+Le lien à partager est **https://brieucolivieri.github.io/le-dernier-set/**. GitHub Pages publie la branche `main` depuis la racine du dépôt ; `.nojekyll` sert directement les fichiers statiques. Le dossier `supabase/` contient la migration de la base et n'est pas utilisé par la page publiée.
+
+L'ancien hébergement Sites reste configuré dans `.openai/hosting.json`, mais GitHub Pages est désormais l'adresse principale.
