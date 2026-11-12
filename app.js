@@ -5,25 +5,7 @@
     const VENUES = { pavane: 'La Pavane', bryans: 'Le Bryan’s' };
     const VENUE_LOGOS = { pavane: 'assets/pavane.webp', bryans: 'assets/bryans.jpg' };
     const VOTE_LABELS = { yes: '🍻 Je viens', maybe: '🤔 Peut-être', no: '🛌 Je rentre' };
-    const ICON_MODE = 'emoji';
-    const ICONS = {
-        yes: {
-            emoji: '🍻',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11h8v8H8z"/><path d="M10 11V5h4v6M16 13h2a2 2 0 0 0 0-4h-2M6 13H4a2 2 0 0 1 0-4h2"/><path d="M8 21h8"/></svg>',
-        },
-        maybe: {
-            emoji: '🤔',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a8 8 0 0 0-4.9 14.3L6 21l4.3-2.1A8 8 0 1 0 12 3Z"/><path d="M9 10h.01M15 10h.01M9.5 14a4 4 0 0 1 5 0"/></svg>',
-        },
-        no: {
-            emoji: '🛋️',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M4 11h16a2 2 0 0 1 2 2v4H2v-4a2 2 0 0 1 2-2Z"/><path d="M4 17v2M20 17v2"/></svg>',
-        },
-        location: {
-            emoji: '📍',
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
-        },
-    };
+    const LOCATION_ICON = '📍';
 
     const SAMPLE_PEOPLE = [
         { name: 'Camille', vote: 'yes', venue: 'pavane' },
@@ -115,17 +97,17 @@
 
     const SQUADS = {
         yes: {
-            ...ICONS.yes,
+            emoji: '🍻',
             title: 'Les légendes <em>sont de sortie</em>',
             empty: 'Premier arrivé, premier héros. La place est libre.',
         },
         maybe: {
-            ...ICONS.maybe,
+            emoji: '🤔',
             title: 'Le comité <em>de réflexion</em>',
             empty: 'Aucun dossier en attente. Une efficacité rare.',
         },
         no: {
-            ...ICONS.no,
+            emoji: '🛋️',
             title: 'Le canapé <em>a gagné</em>',
             empty: 'Personne au canapé. Quelle belle équipe.',
         },
@@ -268,7 +250,7 @@
             head.className = 'squad-head';
             const icon = document.createElement('span');
             icon.className = 'squad-icon';
-            icon.innerHTML = ICON_MODE === 'icons' ? meta.icon : meta.emoji;
+            icon.textContent = meta.emoji;
             icon.setAttribute('aria-hidden', 'true');
             const title = document.createElement('h3');
             title.innerHTML = meta.title;
@@ -616,8 +598,7 @@
             );
             if (venueInput) venueInput.checked = true;
         }
-        $('#location-icon').innerHTML =
-            ICON_MODE === 'icons' ? ICONS.location.icon : ICONS.location.emoji;
+        $('#location-icon').textContent = LOCATION_ICON;
         chooseVote(selectedVote);
         syncVenuePicker();
         render();

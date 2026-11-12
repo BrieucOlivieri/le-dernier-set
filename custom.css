@@ -11,7 +11,7 @@
     --green: #315d46;
     --line: #dedfd3;
 
-    /* Échelle typographique : à utiliser partout, jamais de font-size en px */
+    /* Échelle typographique du texte courant et des titres. */
     --fs-label: 0.6875rem;  /* 11px : petits labels MAJUSCULES (kickers, pastilles, tampon) */
     --fs-xs: 0.8125rem;     /* 13px : textes secondaires (notes, aides, pastilles, pied de page) */
     --fs-sm: 0.875rem;      /* 14px : libellés et contrôles (champs, choix, boutons, barres) */
@@ -190,8 +190,7 @@ header {
 }
 
 .poster:hover {
-    transform: rotate(0deg);
-    transform: scale(1.02)
+    transform: scale(1.02);
 }
 
 .poster:before,
@@ -714,11 +713,6 @@ header {
     font-weight: 700;
 }
 
-.location > div {
-    min-width: 0;
-    width: 100%;
-}
-
 .venue-label {
     display: flex;
     align-items: center;
@@ -802,10 +796,6 @@ header {
     align-items: flex-start;
 }
 
-.people-head h2 {
-    font-size: var(--fs-xl);
-}
-
 .count {
     background: var(--yellow);
     border-radius: 30px;
@@ -817,20 +807,7 @@ header {
 }
 
 .squad {
-    border: 1px solid #d4dfcf;
-    border-radius: 13px;
     overflow: hidden;
-    background: #f5f9f0;
-}
-
-.squad-maybe {
-    background: #fffaf0;
-    border-color: #eee0b9;
-}
-
-.squad-no {
-    background: #f7f3ef;
-    border-color: #e3d8cf;
 }
 
 .crew-card .squad-head {
@@ -838,10 +815,6 @@ header {
     align-items: center;
     gap: 9px;
     padding: 9px 12px 7px;
-}
-
-.squad-icon {
-    font-size: 24px;
 }
 
 .crew-card .squad h3 {
@@ -865,31 +838,10 @@ header {
     color: var(--green);
 }
 
-.squad-list {
-    padding: 0 12px;
-}
-
-.squad .person-name {
-    font-size: var(--fs-base);
-    overflow-wrap: anywhere;
-}
-
 .squad .avatar {
-    width: 39px;
-    height: 39px;
     background: var(--green);
     color: white;
     flex-shrink: 0;
-}
-
-.squad-maybe .avatar {
-    background: #e4c369;
-    color: #523b14;
-}
-
-.squad-no .avatar {
-    background: #e4d8cd;
-    color: #685447;
 }
 
 .crew-card .squad-empty {
@@ -927,19 +879,10 @@ header {
     margin-top: 20px;
 }
 
-.crew-card .avatar {
-    width: 29px;
-    height: 29px;
-    font-size: var(--fs-label);
-}
-
 .crew-card .count {
-    background: var(--yellow);
-    font-size: var(--fs-xs);
     padding: 6px 10px;
     transform: rotate(-5deg);
     margin: 0;
-    white-space: nowrap;
 }
 
 .crew-card .squad-icon {
@@ -988,9 +931,11 @@ header {
     pointer-events: none;
 }
 
-.crew-card .location > .venue-label,
 .crew-card .location > div {
     position: relative;
+    min-width: 0;
+    width: 100%;
+    flex: 1;
 }
 
 .crew-card .location .venue-label {
@@ -1045,16 +990,6 @@ header {
     line-height: 1;
 }
 
-.crew-card .location > div {
-    width: 100%;
-    flex: 1;
-}
-
-.location-icon svg {
-    width: 18px;
-    height: 18px;
-}
-
 .crew-card {
     border-top: 4px solid var(--green);
 }
@@ -1076,7 +1011,6 @@ header {
     border-radius: 0;
     background: transparent;
     padding-bottom: 3px;
-    border-bottom: 0;
 }
 
 .crew-card .location {
@@ -1224,6 +1158,7 @@ header {
     min-width: 0;
     font-size: var(--fs-base);
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 .crew-card .squad-no .person-info {
@@ -1661,10 +1596,6 @@ header {
         grid-template-columns: 1fr;
     }
 
-    .people-head h2 {
-        font-size: var(--fs-xl);
-    }
-
     .vote-card {
         padding: 21px;
     }
@@ -1674,12 +1605,7 @@ header {
     }
 
     .crew-card .count {
-        font-size: var(--fs-xs);
         padding: 5px 8px;
-    }
-
-    .crew-card .squad h3 em {
-        font-size: var(--fs-md);
     }
 }
 
