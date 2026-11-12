@@ -28,7 +28,7 @@ Un aperçu en `file://` a fonctionné dans Chrome, mais un serveur HTTP local es
 
 Pour tester seul, ouvre l'adresse dans une fenêtre normale et une fenêtre privée. Vote dans la première, puis actualise les votes dans la seconde : les deux fenêtres doivent montrer le même résultat. Chaque fenêtre possède sa propre identité anonyme, donc elle peut modifier uniquement sa réponse. Vérifie aussi les trois choix, la confirmation « Je rentre » et le retrait d'un vote.
 
-Pour tester avec quelqu'un à distance, il faut d'abord publier le site sur une adresse accessible. Un lien `localhost` ne fonctionne que sur ton ordinateur.
+Pour tester avec quelqu'un à distance, partage l'adresse publique ci-dessous. Un lien `localhost` ne fonctionne que sur ton ordinateur.
 
 ## Données
 
@@ -42,4 +42,4 @@ Si Supabase est inaccessible, le site affiche une erreur et n'enregistre pas de 
 
 ## Mise en ligne
 
-Publier `index.html`, `custom.css`, `app.js`, `vote-store.js`, `config.js` et le dossier `assets/` sur un hébergement de fichiers statiques. Conserver les chemins relatifs et servir le dossier depuis une même racine. Le dossier `supabase/` sert à configurer la base et n'a pas besoin d'être hébergé. Aucun hébergement n'est configuré ici.
+Le site est publié sur **https://le-dernier-set-gsl.sproutingatlas1.chatgpt.site** via Sites. Son identifiant et son dossier statique sont déclarés dans `.openai/hosting.json`. Le dossier `dist/` est généré pour la publication à partir de `index.html`, `custom.css`, `app.js`, `vote-store.js`, `config.js` et `assets/` ; il est ignoré par le dépôt local. Le dossier `supabase/` sert à configurer la base et n'est pas publié.

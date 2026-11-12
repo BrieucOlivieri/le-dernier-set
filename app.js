@@ -267,7 +267,25 @@
     }
 
     function renderPeople(people) {
-        $('#people').replaceChildren();
+        const container = $('#people');
+        container.replaceChildren();
+        if (!people.length) {
+            const empty = document.createElement('div');
+            empty.className = 'crew-empty';
+            const icon = document.createElement('span');
+            icon.className = 'crew-empty-icon';
+            icon.textContent = '🍺';
+            icon.setAttribute('aria-hidden', 'true');
+            const copy = document.createElement('div');
+            const title = document.createElement('h3');
+            title.textContent = 'Le barman commence à douter.';
+            const detail = document.createElement('p');
+            detail.textContent = 'Personne n’a encore répondu pour jeudi. À toi de le rassurer !';
+            copy.append(title, detail);
+            empty.append(icon, copy);
+            container.append(empty);
+            return;
+        }
         for (const vote of ['yes', 'maybe', 'no']) {
             const meta = SQUADS[vote],
                 group = people.filter((person) => person.vote === vote);
@@ -298,22 +316,24 @@
                 group.forEach((person) => list.append(createPerson(person)));
                 section.append(list);
             }
-            $('#people').append(section);
+            container.append(section);
         }
     }
 
     function renderVenueResults(counts, bars) {
         const total = bars.pavane + bars.bryans;
+        const leader = bars.pavane === bars.bryans
+            ? null
+            : bars.pavane > bars.bryans ? 'pavane' : 'bryans';
         for (const venue of Object.keys(VENUES)) {
             $('#' + venue + '-count').textContent = bars[venue];
-            $('#' + venue + '-bar').style.width = (total ? (100 * bars[venue]) / total : 0) + '%';
+            $('#' + venue + '-team').classList.toggle('is-leading', venue === leader);
         }
         if (!total) {
             $('#venue-result').textContent = 'Le choix du bar reste ouvert.';
-        } else if (bars.pavane === bars.bryans) {
+        } else if (!leader) {
             $('#venue-result').textContent = 'Égalité : à décider ensemble !';
         } else {
-            const leader = bars.pavane > bars.bryans ? 'pavane' : 'bryans';
             $('#venue-result').textContent = VENUES[leader] + ' en tête des préférences.';
         }
         const missing = counts.yes - total;
@@ -353,31 +373,33 @@
     }
 
     // 6. Notifications et animations
-    function showToast(text, vote) {
+    function showToast(vote, venue) {
         const notification = $('#toast');
         notification.className = 'toast toast-' + vote;
         const icon = document.createElement('span');
         icon.textContent = { yes: '🍻', maybe: '🤔', no: '🛋️' }[vote];
         icon.setAttribute('aria-hidden', 'true');
-        if (vote === 'no') {
-            const message = document.createElement('span');
-            message.className = 'toast-text';
-            const title = document.createElement('strong');
-            title.textContent = 'Le canapé gagne ce set.';
-            const detail = document.createElement('small');
-            detail.textContent = 'Revanche possible, tu peux changer d’avis.';
-            message.append(title, detail);
-            const action = document.createElement('button');
-            action.type = 'button';
-            action.className = 'toast-action';
-            action.textContent = 'Finalement, je viens';
-            action.addEventListener('click', switchToYes);
-            notification.replaceChildren(icon, message, action);
-        } else {
-            const message = document.createElement('span');
-            message.textContent = text;
-            notification.replaceChildren(icon, message);
-        }
+        const message = document.createElement('span');
+        message.className = 'toast-text';
+        const title = document.createElement('strong');
+        title.textContent = {
+            yes: 'C’est noté, tu viens !',
+            maybe: 'Tu gardes le suspense.',
+            no: 'Le canapé a gagné.',
+        }[vote];
+        const detail = document.createElement('small');
+        detail.textContent = {
+            yes: 'Ton bar préféré : ' + VENUES[venue] + '.',
+            maybe: 'On attend le verdict avant de commander.',
+            no: 'Tu peux encore changer d’avis.',
+        }[vote];
+        message.append(title, detail);
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'toast-action';
+        action.textContent = vote === 'yes' ? 'Modifier' : 'Finalement, je viens';
+        action.addEventListener('click', switchToYes);
+        notification.replaceChildren(icon, message, action);
         void notification.offsetWidth; // relance l'animation si on clique plusieurs fois
         notification.classList.add('is-visible');
         clearTimeout(toastTimer);
@@ -478,8 +500,8 @@
         setTimeout(() => layer.remove(), 5600);
     }
 
-    function celebrate(vote, text) {
-        showToast(text, vote);
+    function celebrate(vote, venue) {
+        showToast(vote, venue);
         if (vote === 'no') showForfaitStamp();
         if (vote === 'yes' || vote === 'no') showFallingEffect(vote);
     }
@@ -526,7 +548,7 @@
             document.querySelector('input[name="venue"]')).focus({ preventScroll: true });
     }
 
-    async function saveResponse(nextResponse, message) {
+    async function saveResponse(nextResponse) {
         if (!sharedVotesReady || !voteStore || voteMutationPending) return;
         voteMutationPending = true;
         voteVersion++;
@@ -539,7 +561,7 @@
             response = saved;
             $('#message').textContent = '';
             render();
-            celebrate(response.vote, message);
+            celebrate(response.vote, response.venue);
         } catch {
             $('#message').textContent = 'Impossible d’enregistrer ta réponse. Réessaie.';
         } finally {
@@ -553,10 +575,7 @@
         const name = pendingNoName;
         const reason = document.querySelector('input[name="no-reason"]:checked')?.value || null;
         $('#no-dialog').close();
-        saveResponse(
-            { name, vote: 'no', venue: null, reason },
-            'Le canapé gagne ce set. Revanche possible : tu peux encore changer d’avis.',
-        );
+        saveResponse({ name, vote: 'no', venue: null, reason });
     }
 
     function handleSubmit(event) {
@@ -580,11 +599,7 @@
             openNoDialog(name);
             return;
         }
-        const message =
-            selectedVote === 'maybe'
-                ? 'Dossier ouvert ! Le comité attend ta décision.'
-                : 'Bienvenue parmi les légendes ! Rendez-vous préféré : ' + VENUES[venue] + '.';
-        saveResponse({ name, vote: selectedVote, venue, reason: null }, message);
+        saveResponse({ name, vote: selectedVote, venue, reason: null });
     }
 
     async function removeResponse() {

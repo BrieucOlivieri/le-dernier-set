@@ -730,34 +730,6 @@ header {
     text-transform: uppercase;
 }
 
-.bar-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: var(--fs-sm);
-    margin-top: 9px;
-}
-
-.bar-track {
-    height: 6px;
-    background: #d7dece;
-    border-radius: 5px;
-    margin: 5px 0 10px;
-    overflow: hidden;
-}
-
-.bar-track > div {
-    background: var(--green);
-    height: 100%;
-    width: 0;
-    transition: width 0.2s;
-    border-radius: 5px;
-}
-
-#bryans-bar {
-    background: #aa7c15;
-}
-
 .venue-result {
     font-weight: 800;
     margin-top: 13px;
@@ -944,6 +916,7 @@ header {
 }
 
 .crew-card .location .venue-label {
+    justify-content: flex-start;
     color: var(--yellow);
     font-size: var(--fs-label);
     letter-spacing: 1.7px;
@@ -951,11 +924,7 @@ header {
 
 .crew-card .location .venue-note {
     color: #c1cbbf;
-    font-size: var(--fs-xs);
-}
-
-.crew-card .location #pavane-bar {
-    background: var(--yellow);
+    font-size: var(--fs-sm);
 }
 
 .crew-card .refresh-line .small {
@@ -966,23 +935,13 @@ header {
     font-size: var(--fs-sm);
 }
 
-.crew-card .location .bar-name {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .crew-card .location .bar-logo {
-    width: 22px;
-    height: 22px;
-    flex: 0 0 22px;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
     border-radius: 50%;
     object-fit: contain;
     box-shadow: 0 0 0 2px #fff;
-}
-
-.crew-card .location #bryans-bar {
-    background: var(--paper);
 }
 
 .location-icon {
@@ -1018,6 +977,41 @@ header {
     padding-bottom: 3px;
 }
 
+.crew-card .crew-empty {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    border: 1px dashed #b9c8b8;
+    border-radius: 16px;
+    background: #f4f7ed;
+}
+
+.crew-card .crew-empty-icon {
+    display: grid;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    border-radius: 50%;
+    background: #e2ecd9;
+    font-size: 27px;
+    line-height: 1;
+}
+
+.crew-card .crew-empty h3 {
+    margin: 0 0 4px;
+    font-size: var(--fs-md);
+    line-height: 1.25;
+}
+
+.crew-card .crew-empty p {
+    margin: 0;
+    color: #617260;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+}
+
 .crew-card .location {
     background: var(--ink);
     color: var(--paper);
@@ -1032,16 +1026,53 @@ header {
     padding-top: 14px;
 }
 
-.crew-card .location .bar-row {
+.crew-card .match-board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    font-size: var(--fs-sm);
+    gap: 12px;
     margin-top: 18px;
 }
 
-.crew-card .location .bar-track {
-    background: #4d6052;
-    height: 7px;
-    margin: 8px 0 18px;
+.crew-card .match-team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: var(--fs-sm);
+}
+
+.crew-card .match-team-bryans {
+    justify-content: flex-end;
+}
+
+.crew-card .match-team .bar-name {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.crew-card .match-score {
+    font-size: 1.875rem;
+    line-height: 1;
+}
+
+.crew-card .match-team.is-leading .match-score {
+    color: var(--yellow);
+}
+
+.crew-card .match-team.is-leading .bar-name {
+    font-weight: 800;
+}
+
+.crew-card .match-team.is-leading .bar-logo {
+    box-shadow: 0 0 0 3px var(--yellow);
+}
+
+.crew-card .match-vs {
+    color: #c1cbbf;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 .crew-card .location .venue-result {
@@ -1392,13 +1423,13 @@ header {
     right: 0;
     bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     z-index: 50;
-    width: max-content;
-    max-width: min(92vw, 420px);
+    width: min(92vw, 460px);
     margin: 0 auto;
-    display: flex;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
-    padding: 12px 20px;
+    padding: 12px 16px;
     isolation: isolate;
     color: var(--paper);
     font-family: Georgia, serif;
@@ -1431,19 +1462,11 @@ header {
 .toast.is-visible {
     opacity: 1;
     transform: none;
-}
-
-.toast.is-visible:has(.toast-action) {
     pointer-events: auto;
-}
-
-.toast:has(.toast-action) {
-    width: min(92vw, 420px);
 }
 
 .toast-text {
     display: flex;
-    flex: 1;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
@@ -1460,14 +1483,16 @@ header {
 }
 
 .toast-action {
-    flex-shrink: 0;
     padding: 7px 12px;
     border: 0;
     border-radius: 999px;
     background: var(--yellow);
     color: var(--ink);
+    font-family: system-ui, sans-serif;
     font-size: var(--fs-xs);
+    font-style: normal;
     font-weight: 700;
+    line-height: 1.2;
     white-space: nowrap;
 }
 
@@ -1477,6 +1502,11 @@ header {
 
 .toast-yes::before {
     background: var(--yellow);
+}
+
+.toast-yes .toast-action {
+    background: var(--ink);
+    color: var(--paper);
 }
 
 .toast > span:first-child {
@@ -1636,6 +1666,39 @@ header {
     }
 }
 
+@media (max-width: 520px) {
+    .crew-card .match-board {
+        align-items: center;
+        gap: 8px;
+    }
+
+    .crew-card .match-team {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
+
+    .crew-card .match-team-bryans {
+        flex-direction: column-reverse;
+    }
+
+    .crew-card .match-team .bar-name {
+        min-height: 2.5em;
+        white-space: normal;
+    }
+
+    .crew-card .match-vs {
+        align-self: end;
+        margin-bottom: 8px;
+    }
+
+    .crew-card .location .bar-logo {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+}
+
 @media (max-width: 480px) {
     .vote-card .forfait-stamp {
         top: 10px;
@@ -1643,19 +1706,16 @@ header {
         padding: 2px 10px;
         font-size: var(--fs-md);
     }
+}
 
-    .toast:has(.toast-action) {
-        width: min(92vw, 420px);
-        flex-wrap: wrap;
-        row-gap: 8px;
-    }
-
-    .toast-text {
-        flex: 1 1 calc(100% - 52px);
+@media (max-width: 390px) {
+    .toast {
+        grid-template-columns: 28px minmax(0, 1fr);
     }
 
     .toast-action {
-        margin-left: 38px;
+        grid-column: 2;
+        justify-self: start;
     }
 }
 
@@ -1747,7 +1807,6 @@ header {
         animation: none;
     }
 
-    .bar-track > div,
     .choice {
         transition: none;
     }

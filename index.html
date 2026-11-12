@@ -144,26 +144,22 @@
                 ></span
                 >Le match des bars
               </div>
-              <p class="venue-note" style="margin: 5px 0 12px">
-                Préférences des participants « Je viens ».
-              </p>
-              <div class="bar-row">
-                <span class="bar-name"
-                  ><img class="bar-logo" src="assets/pavane.webp" alt="" />La
-                  Pavane</span
-                ><strong id="pavane-count">0</strong>
-              </div>
-              <div class="bar-track">
-                <div id="pavane-bar"></div>
-              </div>
-              <div class="bar-row">
-                <span class="bar-name"
-                  ><img class="bar-logo" src="assets/bryans.jpg" alt="" />Le
-                  Bryan’s</span
-                ><strong id="bryans-count">0</strong>
-              </div>
-              <div class="bar-track">
-                <div id="bryans-bar"></div>
+              <div
+                class="match-board"
+                role="group"
+                aria-label="Préférences des participants qui viennent"
+              >
+                <div class="match-team" id="pavane-team">
+                  <img class="bar-logo" src="assets/pavane.webp" alt="" />
+                  <span class="bar-name">La Pavane</span>
+                  <strong class="match-score" id="pavane-count">0</strong>
+                </div>
+                <span class="match-vs" aria-hidden="true">vs</span>
+                <div class="match-team match-team-bryans" id="bryans-team">
+                  <strong class="match-score" id="bryans-count">0</strong>
+                  <span class="bar-name">Le Bryan’s</span>
+                  <img class="bar-logo" src="assets/bryans.jpg" alt="" />
+                </div>
               </div>
               <p class="venue-result" id="venue-result" role="status"></p>
               <p class="venue-note" id="venue-detail"></p>
