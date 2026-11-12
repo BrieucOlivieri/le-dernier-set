@@ -856,7 +856,7 @@ header {
     font-style: italic;
 }
 
-.demo-line {
+.refresh-line {
     display: flex;
     justify-content: space-between;
     gap: 8px;
@@ -958,7 +958,7 @@ header {
     background: var(--yellow);
 }
 
-.crew-card .demo-line .small {
+.crew-card .refresh-line .small {
     font-size: var(--fs-xs);
 }
 
@@ -1028,7 +1028,7 @@ header {
     padding: 18px 17px;
 }
 
-.crew-card .demo-line {
+.crew-card .refresh-line {
     padding-top: 14px;
 }
 
@@ -1054,7 +1054,7 @@ header {
     margin-top: 16px;
 }
 
-.crew-card .demo-line .text-button:hover {
+.crew-card .refresh-line .text-button:hover {
     background: var(--ink);
     color: var(--paper);
 }
@@ -1126,7 +1126,7 @@ header {
     line-height: 1.4;
 }
 
-.crew-card .demo-line .text-button {
+.crew-card .refresh-line .text-button {
     padding: 6px 12px;
     border: 1px solid var(--ink);
     border-radius: 999px;

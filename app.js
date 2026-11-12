@@ -1,26 +1,10 @@
 (() => {
     'use strict';
-    // 1. Configuration, textes et participants de démonstration
+    // 1. Configuration et textes
     const $ = (selector) => document.querySelector(selector);
     const VENUES = { pavane: 'La Pavane', bryans: 'Le Bryan’s' };
     const VENUE_LOGOS = { pavane: 'assets/pavane.webp', bryans: 'assets/bryans.jpg' };
-    const VOTE_LABELS = { yes: '🍻 Je viens', maybe: '🤔 Peut-être', no: '🛌 Je rentre' };
     const LOCATION_ICON = '📍';
-
-    const SAMPLE_PEOPLE = [
-        { name: 'Camille', vote: 'yes', venue: 'pavane' },
-        { name: 'Alex', vote: 'yes', venue: 'bryans' },
-        { name: 'Sam', vote: 'yes', venue: 'pavane' },
-        { name: 'Lou', vote: 'maybe', venue: 'bryans' },
-        { name: 'Max', vote: 'no', venue: null, reason: 'moitie' },
-        { name: 'Léa', vote: 'no', venue: null, reason: 'fatigue' },
-        { name: 'Noa', vote: 'no', venue: null, reason: 'boulot' },
-        { name: 'Yanis', vote: 'no', venue: null, reason: 'budget' },
-        { name: 'Zoé', vote: 'no', venue: null, reason: 'blessure' },
-        { name: 'Hugo', vote: 'no', venue: null, reason: 'canape' },
-        { name: 'Iris', vote: 'no', venue: null, reason: 'mystere' },
-        { name: 'Maël', vote: 'no', venue: null, reason: null },
-    ];
     const REASONS = {
         moitie: {
             emoji: '💑',
@@ -114,24 +98,29 @@
     };
 
     // 2. Date du prochain jeudi et état de la session
-    const paris = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
-    paris.setDate(paris.getDate() + ((4 - paris.getDay() + 7) % 7));
-    const week = [
-        paris.getFullYear(),
-        String(paris.getMonth() + 1).padStart(2, '0'),
-        String(paris.getDate()).padStart(2, '0'),
-    ].join('-');
-    const storageKey = 'dernier-set:' + week;
-    const sharedMode = Boolean(window.GSL_SUPABASE?.url && window.GSL_SUPABASE?.publishableKey);
+    function upcomingThursday() {
+        const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+        date.setDate(date.getDate() + ((4 - date.getDay() + 7) % 7));
+        return date;
+    }
 
+    function dateKey(date) {
+        return [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, '0'),
+            String(date.getDate()).padStart(2, '0'),
+        ].join('-');
+    }
+
+    const paris = upcomingThursday();
+    const week = dateKey(paris);
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let toastTimer;
     let stampTimer;
     let shakeTimer;
     let pendingNoName = null;
-    let response = sharedMode ? null : loadResponse();
-    let selectedVote = response?.vote || 'yes';
-    let showDemo = false;
+    let response = null;
+    let selectedVote = 'yes';
     let sharedPeople = [];
     let voteStore = null;
     let sharedVotesReady = false;
@@ -140,29 +129,7 @@
     let voteMutationPending = false;
     let voteVersion = 0;
 
-    // 3. Votes locaux de démonstration et votes partagés
-    function loadResponse() {
-        let response = null;
-        try {
-            response = JSON.parse(localStorage.getItem(storageKey));
-        } catch {}
-        if (
-            response &&
-            (typeof response.name !== 'string' ||
-                !response.name.trim() ||
-                !Object.hasOwn(VOTE_LABELS, response.vote))
-        )
-            response = null;
-        if (response && !Object.hasOwn(VENUES, response.venue)) response.venue = null;
-        if (response) {
-            response.reason = response.vote === 'no' && Object.hasOwn(REASONS, response.reason)
-                ? response.reason
-                : null;
-        }
-
-        return response;
-    }
-
+    // 3. Chargement des votes partagés et restauration du formulaire
     function setVoteBusy(busy) {
         $('#save').disabled = busy;
         $('#no-confirm').disabled = busy;
@@ -207,15 +174,12 @@
         }
     }
 
-    function showSharedNotice() {
-        $('.notice > span').textContent = '📣';
-        const notice = $('.notice p');
-        const title = document.createElement('strong');
-        title.textContent = 'Votes partagés.';
-        notice.replaceChildren(
-            title,
-            ' Les réponses du jeudi sont visibles par tous les visiteurs. Tu peux modifier ou retirer la tienne depuis ce navigateur.',
-        );
+    function refreshCurrentWeek() {
+        if (dateKey(upcomingThursday()) !== week) {
+            location.reload();
+            return;
+        }
+        void refreshSharedVotes();
     }
 
     // 4. Sélection dans le formulaire
@@ -369,21 +333,11 @@
     }
 
     function renderActions() {
-        if (sharedMode) {
-            $('#demo-label').textContent = sharedVotesError
-                ? 'Votes non actualisés. Réessaie.'
-                : sharedVotesReady
-                  ? 'Votes du jeudi partagés entre les visiteurs.'
-                  : 'Connexion aux votes en cours.';
-            $('#demo').textContent = 'Actualiser les votes';
-        } else {
-            $('#demo-label').textContent = showDemo
-                ? 'Participants fictifs affichés.'
-                : response
-                  ? 'Ta réponse est enregistrée ici.'
-                  : 'À toi d’ouvrir le bal.';
-            $('#demo').textContent = showDemo ? 'Masquer les exemples' : 'Voir avec des exemples';
-        }
+        $('#refresh-label').textContent = sharedVotesError
+            ? 'Votes non actualisés. Réessaie.'
+            : sharedVotesReady
+              ? 'Votes du jeudi partagés entre les visiteurs.'
+              : 'Connexion aux votes en cours.';
         $('#save').textContent = response
             ? 'Mettre à jour ma réponse ↗'
             : 'Allez, je donne ma réponse ↗';
@@ -391,12 +345,9 @@
     }
 
     function render() {
-        const people = sharedMode
-            ? sharedPeople
-            : [...(showDemo ? SAMPLE_PEOPLE : []), ...(response ? [response] : [])];
-        const { counts, bars } = getResults(people);
+        const { counts, bars } = getResults(sharedPeople);
         $('#count').textContent = counts.yes + ' partant' + (counts.yes > 1 ? 's' : '');
-        renderPeople(people);
+        renderPeople(sharedPeople);
         renderVenueResults(counts, bars);
         renderActions();
     }
@@ -576,43 +527,29 @@
     }
 
     async function saveResponse(nextResponse, message) {
-        if (sharedMode) {
-            if (!sharedVotesReady || !voteStore || voteMutationPending) return;
-            voteMutationPending = true;
-            voteVersion++;
-            setVoteBusy(true);
-            try {
-                const saved = await voteStore.save(week, nextResponse);
-                sharedPeople = sharedPeople.filter((person) => person.user_id !== voteStore.userId);
-                sharedPeople.push(saved);
-                sharedPeople.sort((a, b) => a.created_at.localeCompare(b.created_at));
-                response = saved;
-                $('#message').textContent = '';
-                render();
-                celebrate(response.vote, message);
-            } catch {
-                $('#message').textContent = 'Impossible d’enregistrer ta réponse. Réessaie.';
-            } finally {
-                voteMutationPending = false;
-                setVoteBusy(false);
-            }
-            return;
-        }
-
-        response = nextResponse;
+        if (!sharedVotesReady || !voteStore || voteMutationPending) return;
+        voteMutationPending = true;
+        voteVersion++;
+        setVoteBusy(true);
         try {
-            localStorage.setItem(storageKey, JSON.stringify(response));
+            const saved = await voteStore.save(week, nextResponse);
+            sharedPeople = sharedPeople.filter((person) => person.user_id !== voteStore.userId);
+            sharedPeople.push(saved);
+            sharedPeople.sort((a, b) => a.created_at.localeCompare(b.created_at));
+            response = saved;
             $('#message').textContent = '';
+            render();
+            celebrate(response.vote, message);
         } catch {
-            $('#message').textContent =
-                'Réponse affichée, mais ce navigateur ne permet pas de la conserver.';
+            $('#message').textContent = 'Impossible d’enregistrer ta réponse. Réessaie.';
+        } finally {
+            voteMutationPending = false;
+            setVoteBusy(false);
         }
-        render();
-        celebrate(response.vote, message);
     }
 
     function confirmNo() {
-        if (!pendingNoName || (sharedMode && !sharedVotesReady)) return;
+        if (!pendingNoName || !sharedVotesReady) return;
         const name = pendingNoName;
         const reason = document.querySelector('input[name="no-reason"]:checked')?.value || null;
         $('#no-dialog').close();
@@ -624,7 +561,7 @@
 
     function handleSubmit(event) {
         event.preventDefault();
-        if (sharedMode && (!sharedVotesReady || voteMutationPending)) return;
+        if (!sharedVotesReady || voteMutationPending) return;
         const name = $('#name').value.trim();
         if (!name) {
             $('#name').setCustomValidity('Indique ton prénom pour répondre.');
@@ -651,36 +588,28 @@
     }
 
     async function removeResponse() {
-        if (sharedMode) {
-            if (!sharedVotesReady || !voteStore || voteMutationPending) return;
-            voteMutationPending = true;
-            voteVersion++;
-            setVoteBusy(true);
-            try {
-                await voteStore.remove(week);
-                sharedPeople = sharedPeople.filter((person) => person.user_id !== voteStore.userId);
-            } catch {
-                $('#message').textContent = 'Impossible de retirer ta réponse. Réessaie.';
-                voteMutationPending = false;
-                setVoteBusy(false);
-                return;
-            }
+        if (!sharedVotesReady || !voteStore || voteMutationPending) return;
+        voteMutationPending = true;
+        voteVersion++;
+        setVoteBusy(true);
+        try {
+            await voteStore.remove(week);
+            sharedPeople = sharedPeople.filter((person) => person.user_id !== voteStore.userId);
+            response = null;
+            $('#name').value = '';
+            document
+                .querySelectorAll('input[name="venue"]')
+                .forEach((input) => (input.checked = false));
+            syncVenuePicker();
+            chooseVote('yes');
+            $('#message').textContent = 'Ta réponse a été retirée.';
+            render();
+        } catch {
+            $('#message').textContent = 'Impossible de retirer ta réponse. Réessaie.';
+        } finally {
             voteMutationPending = false;
             setVoteBusy(false);
-        } else {
-            try {
-                localStorage.removeItem(storageKey);
-            } catch {}
         }
-        response = null;
-        $('#name').value = '';
-        document
-            .querySelectorAll('input[name="venue"]')
-            .forEach((input) => (input.checked = false));
-        syncVenuePicker();
-        chooseVote('yes');
-        $('#message').textContent = 'Ta réponse a été retirée.';
-        render();
     }
 
     function bindEvents() {
@@ -689,20 +618,11 @@
         $('#no-stay').addEventListener('click', switchToYes);
         $('#no-dialog').addEventListener('close', () => { pendingNoName = null; });
         $('#name').addEventListener('input', () => $('#name').setCustomValidity(''));
-        $('#demo').addEventListener('click', () => {
-            if (sharedMode) {
-                void refreshSharedVotes();
-                return;
-            }
-            showDemo = !showDemo;
-            render();
-        });
+        $('#refresh-votes').addEventListener('click', refreshCurrentWeek);
         $('#remove').addEventListener('click', removeResponse);
-        if (sharedMode) {
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) void refreshSharedVotes();
-            });
-        }
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshCurrentWeek();
+        });
         document.querySelectorAll('.choice').forEach((button) => {
             button.addEventListener('click', () => chooseVote(button.dataset.vote));
         });
@@ -720,17 +640,13 @@
             month: 'long',
         });
         $('#location-icon').textContent = LOCATION_ICON;
-        if (sharedMode) showSharedNotice();
-        restoreForm();
         chooseVote(selectedVote);
         syncVenuePicker();
         render();
 
         bindEvents();
-        if (sharedMode) {
-            setVoteBusy(true);
-            void refreshSharedVotes(true);
-        }
+        setVoteBusy(true);
+        void refreshSharedVotes(true);
     }
     init();
 })();
