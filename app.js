@@ -122,17 +122,25 @@
         String(paris.getDate()).padStart(2, '0'),
     ].join('-');
     const storageKey = 'dernier-set:' + week;
+    const sharedMode = Boolean(window.GSL_SUPABASE?.url && window.GSL_SUPABASE?.publishableKey);
 
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let toastTimer;
     let stampTimer;
     let shakeTimer;
     let pendingNoName = null;
-    let response = loadResponse();
+    let response = sharedMode ? null : loadResponse();
     let selectedVote = response?.vote || 'yes';
     let showDemo = false;
+    let sharedPeople = [];
+    let voteStore = null;
+    let sharedVotesReady = false;
+    let sharedVotesError = false;
+    let refreshingVotes = false;
+    let voteMutationPending = false;
+    let voteVersion = 0;
 
-    // 3. Lecture et validation de la réponse enregistrée
+    // 3. Votes locaux de démonstration et votes partagés
     function loadResponse() {
         let response = null;
         try {
@@ -153,6 +161,61 @@
         }
 
         return response;
+    }
+
+    function setVoteBusy(busy) {
+        $('#save').disabled = busy;
+        $('#no-confirm').disabled = busy;
+        $('#remove').disabled = busy;
+        $('#vote').setAttribute('aria-busy', String(busy));
+    }
+
+    function restoreForm() {
+        if (!response) return;
+        $('#name').value = response.name;
+        const venueInput = document.querySelector(
+            `input[name="venue"][value="${response.venue}"]`,
+        );
+        if (venueInput) venueInput.checked = true;
+        chooseVote(response.vote);
+        syncVenuePicker();
+    }
+
+    async function refreshSharedVotes(restoreSavedForm = false) {
+        if (refreshingVotes || voteMutationPending) return;
+        refreshingVotes = true;
+        const version = voteVersion;
+        try {
+            if (!voteStore) voteStore = await window.createVoteStore(window.GSL_SUPABASE);
+            const people = await voteStore.list(week);
+            if (version !== voteVersion) return;
+            sharedPeople = people;
+            response = sharedPeople.find((person) => person.user_id === voteStore.userId) || null;
+            sharedVotesReady = true;
+            sharedVotesError = false;
+            if (restoreSavedForm) restoreForm();
+            $('#message').textContent = '';
+            setVoteBusy(false);
+            render();
+        } catch {
+            sharedVotesError = true;
+            $('#message').textContent = 'Impossible de charger les votes. Réessaie avec le bouton Actualiser.';
+            if (!sharedVotesReady) setVoteBusy(true);
+            renderActions();
+        } finally {
+            refreshingVotes = false;
+        }
+    }
+
+    function showSharedNotice() {
+        $('.notice > span').textContent = '📣';
+        const notice = $('.notice p');
+        const title = document.createElement('strong');
+        title.textContent = 'Votes partagés.';
+        notice.replaceChildren(
+            title,
+            ' Les réponses du jeudi sont visibles par tous les visiteurs. Tu peux modifier ou retirer la tienne depuis ce navigateur.',
+        );
     }
 
     // 4. Sélection dans le formulaire
@@ -306,12 +369,21 @@
     }
 
     function renderActions() {
-        $('#demo-label').textContent = showDemo
-            ? 'Participants fictifs affichés.'
-            : response
-              ? 'Ta réponse est enregistrée ici.'
-              : 'À toi d’ouvrir le bal.';
-        $('#demo').textContent = showDemo ? 'Masquer les exemples' : 'Voir avec des exemples';
+        if (sharedMode) {
+            $('#demo-label').textContent = sharedVotesError
+                ? 'Votes non actualisés. Réessaie.'
+                : sharedVotesReady
+                  ? 'Votes du jeudi partagés entre les visiteurs.'
+                  : 'Connexion aux votes en cours.';
+            $('#demo').textContent = 'Actualiser les votes';
+        } else {
+            $('#demo-label').textContent = showDemo
+                ? 'Participants fictifs affichés.'
+                : response
+                  ? 'Ta réponse est enregistrée ici.'
+                  : 'À toi d’ouvrir le bal.';
+            $('#demo').textContent = showDemo ? 'Masquer les exemples' : 'Voir avec des exemples';
+        }
         $('#save').textContent = response
             ? 'Mettre à jour ma réponse ↗'
             : 'Allez, je donne ma réponse ↗';
@@ -319,7 +391,9 @@
     }
 
     function render() {
-        const people = [...(showDemo ? SAMPLE_PEOPLE : []), ...(response ? [response] : [])];
+        const people = sharedMode
+            ? sharedPeople
+            : [...(showDemo ? SAMPLE_PEOPLE : []), ...(response ? [response] : [])];
         const { counts, bars } = getResults(people);
         $('#count').textContent = counts.yes + ' partant' + (counts.yes > 1 ? 's' : '');
         renderPeople(people);
@@ -501,7 +575,30 @@
             document.querySelector('input[name="venue"]')).focus({ preventScroll: true });
     }
 
-    function saveResponse(nextResponse, message) {
+    async function saveResponse(nextResponse, message) {
+        if (sharedMode) {
+            if (!sharedVotesReady || !voteStore || voteMutationPending) return;
+            voteMutationPending = true;
+            voteVersion++;
+            setVoteBusy(true);
+            try {
+                const saved = await voteStore.save(week, nextResponse);
+                sharedPeople = sharedPeople.filter((person) => person.user_id !== voteStore.userId);
+                sharedPeople.push(saved);
+                sharedPeople.sort((a, b) => a.created_at.localeCompare(b.created_at));
+                response = saved;
+                $('#message').textContent = '';
+                render();
+                celebrate(response.vote, message);
+            } catch {
+                $('#message').textContent = 'Impossible d’enregistrer ta réponse. Réessaie.';
+            } finally {
+                voteMutationPending = false;
+                setVoteBusy(false);
+            }
+            return;
+        }
+
         response = nextResponse;
         try {
             localStorage.setItem(storageKey, JSON.stringify(response));
@@ -515,7 +612,7 @@
     }
 
     function confirmNo() {
-        if (!pendingNoName) return;
+        if (!pendingNoName || (sharedMode && !sharedVotesReady)) return;
         const name = pendingNoName;
         const reason = document.querySelector('input[name="no-reason"]:checked')?.value || null;
         $('#no-dialog').close();
@@ -527,6 +624,7 @@
 
     function handleSubmit(event) {
         event.preventDefault();
+        if (sharedMode && (!sharedVotesReady || voteMutationPending)) return;
         const name = $('#name').value.trim();
         if (!name) {
             $('#name').setCustomValidity('Indique ton prénom pour répondre.');
@@ -552,10 +650,28 @@
         saveResponse({ name, vote: selectedVote, venue, reason: null }, message);
     }
 
-    function removeResponse() {
-        try {
-            localStorage.removeItem(storageKey);
-        } catch {}
+    async function removeResponse() {
+        if (sharedMode) {
+            if (!sharedVotesReady || !voteStore || voteMutationPending) return;
+            voteMutationPending = true;
+            voteVersion++;
+            setVoteBusy(true);
+            try {
+                await voteStore.remove(week);
+                sharedPeople = sharedPeople.filter((person) => person.user_id !== voteStore.userId);
+            } catch {
+                $('#message').textContent = 'Impossible de retirer ta réponse. Réessaie.';
+                voteMutationPending = false;
+                setVoteBusy(false);
+                return;
+            }
+            voteMutationPending = false;
+            setVoteBusy(false);
+        } else {
+            try {
+                localStorage.removeItem(storageKey);
+            } catch {}
+        }
         response = null;
         $('#name').value = '';
         document
@@ -574,10 +690,19 @@
         $('#no-dialog').addEventListener('close', () => { pendingNoName = null; });
         $('#name').addEventListener('input', () => $('#name').setCustomValidity(''));
         $('#demo').addEventListener('click', () => {
+            if (sharedMode) {
+                void refreshSharedVotes();
+                return;
+            }
             showDemo = !showDemo;
             render();
         });
         $('#remove').addEventListener('click', removeResponse);
+        if (sharedMode) {
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) void refreshSharedVotes();
+            });
+        }
         document.querySelectorAll('.choice').forEach((button) => {
             button.addEventListener('click', () => chooseVote(button.dataset.vote));
         });
@@ -594,19 +719,18 @@
             day: 'numeric',
             month: 'long',
         });
-        if (response) {
-            $('#name').value = response.name;
-            const venueInput = document.querySelector(
-                `input[name="venue"][value="${response.venue}"]`,
-            );
-            if (venueInput) venueInput.checked = true;
-        }
         $('#location-icon').textContent = LOCATION_ICON;
+        if (sharedMode) showSharedNotice();
+        restoreForm();
         chooseVote(selectedVote);
         syncVenuePicker();
         render();
 
         bindEvents();
+        if (sharedMode) {
+            setVoteBusy(true);
+            void refreshSharedVotes(true);
+        }
     }
     init();
 })();
