@@ -455,17 +455,24 @@ header {
     transform: none;
 }
 
-.venue-any-icon {
-    display: grid;
-    width: 46px;
-    height: 46px;
-    flex: 0 0 46px;
-    place-items: center;
+.venue-any-logos {
+    display: flex;
+    align-items: center;
+    width: 62px;
+    flex: 0 0 62px;
+}
+
+.venue-any-logos img {
+    width: 38px;
+    height: 38px;
+    border: 2px solid #fffdf7;
     border-radius: 50%;
-    background: #eaf0e8;
-    color: var(--green);
-    font-size: 23px;
-    font-weight: 800;
+    object-fit: contain;
+    box-shadow: 0 1px 4px rgba(20, 40, 30, 0.2);
+}
+
+.venue-any-logos img + img {
+    margin-left: -14px;
 }
 
 .venue-option input {
