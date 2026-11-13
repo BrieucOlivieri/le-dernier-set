@@ -121,13 +121,16 @@ header {
     filter: drop-shadow(0 2px 1px var(--green, 0.8));
 }
 
-.pill {
-    font-size: var(--fs-label);
-    font-weight: 800;
-    letter-spacing: 1px;
-    border: 1px solid var(--line);
-    padding: 7px 11px;
-    border-radius: 30px;
+.header-note {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.header-note em {
+    color: var(--green);
+    font-family: Georgia, serif;
+    font-size: 1.2em;
 }
 
 .page {
@@ -1602,11 +1605,6 @@ header {
         padding: 17px 20px;
     }
 
-    .pill {
-        font-size: var(--fs-label);
-        padding: 6px 8px;
-    }
-
     .brand {
         font-size: var(--fs-md);
     }
@@ -1797,7 +1795,7 @@ header {
         gap: 8px 12px;
     }
 
-    .pill {
+    .header-note {
         margin-left: auto;
     }
 
