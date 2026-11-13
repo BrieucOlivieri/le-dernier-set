@@ -122,15 +122,36 @@ header {
 }
 
 .header-note {
-    color: var(--muted);
+    display: grid;
+    gap: 1px;
+    padding: 7px 12px 8px;
+    border-left: 3px solid var(--green);
+    border-radius: 3px 11px 11px 3px;
+    background: #e9eee6;
+    transform: rotate(2deg);
+}
+
+.header-note-kicker {
+    color: var(--green);
+    font-size: var(--fs-label);
+    font-weight: 850;
+    letter-spacing: 1.3px;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.header-note-title {
     font-size: var(--fs-sm);
+    font-weight: 750;
+    line-height: 1.2;
     white-space: nowrap;
 }
 
-.header-note em {
+.header-note-title em {
     color: var(--green);
     font-family: Georgia, serif;
-    font-size: 1.2em;
+    font-size: 1.15em;
+    font-weight: 500;
 }
 
 .page {
