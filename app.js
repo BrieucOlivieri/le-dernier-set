@@ -78,6 +78,11 @@
         },
     };
     const NO_REASON_JOKE = 'Sans motif. Le canapé ne pose pas de questions.';
+    const SUBMIT_HELPER = 'Tu peux changer d’avis. Même après avoir dit « je rentre ».';
+    const VENUE_HINTS = {
+        yes: 'Ta préférence sera affichée avec ta réponse.',
+        maybe: 'Pas encore d’avis ? Laisse vide. Touche à nouveau un bar pour le désélectionner.',
+    };
 
     const SQUADS = {
         yes: {
@@ -122,6 +127,7 @@
     let pendingNoName = null;
     let response = null;
     let selectedVote = 'yes';
+    let checkedVenue = null; // bar coché avant le dernier clic, pour pouvoir le décocher
     let sharedPeople = [];
     let voteStore = null;
     let sharedVotesReady = false;
@@ -129,13 +135,32 @@
     let refreshingVotes = false;
     let voteMutationPending = false;
     let voteVersion = 0;
+    let voteBusy = true;
 
     // 3. Chargement des votes partagés et restauration du formulaire
     function setVoteBusy(busy) {
-        $('#save').disabled = busy;
+        voteBusy = busy;
         $('#no-confirm').disabled = busy;
         $('#remove').disabled = busy;
         $('#vote').setAttribute('aria-busy', String(busy));
+        updateSubmitState();
+    }
+
+    function missingRequirement() {
+        if (!$('#name').value.trim()) return 'Indique ton prénom pour répondre.';
+        if (selectedVote === 'yes' && !document.querySelector('input[name="venue"]:checked')) {
+            return 'Choisis ton bar pour valider.';
+        }
+        return null;
+    }
+
+    // Grise le bouton tant que la réponse est incomplète et explique ce qui manque.
+    function updateSubmitState() {
+        const missing = missingRequirement();
+        $('#save').disabled = voteBusy || Boolean(missing);
+        const helper = $('#submit-helper');
+        helper.textContent = missing || SUBMIT_HELPER;
+        helper.classList.toggle('is-missing', Boolean(missing));
     }
 
     function restoreForm() {
@@ -201,15 +226,30 @@
         $('#venue-field').classList.toggle('hidden', isAbsent);
         document.querySelectorAll('input[name="venue"]').forEach((input) => {
             input.disabled = isAbsent;
-            input.required = !isAbsent;
+            // Le bar n'est obligatoire que pour « Je viens ».
+            input.required = vote === 'yes';
         });
         $('#venue-options').classList.toggle('is-disabled', isAbsent);
+        $('#venue-optional').hidden = vote !== 'maybe';
+        if (VENUE_HINTS[vote]) $('#venue-hint').textContent = VENUE_HINTS[vote];
+        updateSubmitState();
     }
 
     function syncVenuePicker() {
+        checkedVenue = null;
         document.querySelectorAll('input[name="venue"]').forEach((input) => {
             input.closest('.venue-option').classList.toggle('is-selected', input.checked);
+            if (input.checked) checkedVenue = input.value;
         });
+        updateSubmitState();
+    }
+
+    function toggleVenue(event) {
+        // En « Peut-être », un second clic sur le bar choisi le désélectionne.
+        if (selectedVote === 'maybe' && event.target.value === checkedVenue) {
+            event.target.checked = false;
+        }
+        syncVenuePicker();
     }
 
     // 5. Calcul et affichage : une fonction par partie de l’interface
@@ -246,7 +286,31 @@
                 preference.append(logo);
             }
             const venueName = document.createElement('span');
-            venueName.textContent = VENUES[person.venue] || 'Bar non précisé';
+            if (person.venue === 'any') {
+                // « Peu importe » : les deux logos superposés, comme dans le formulaire.
+                const logos = document.createElement('span');
+                logos.className = 'pref-logos';
+                logos.setAttribute('aria-hidden', 'true');
+                for (const src of Object.values(VENUE_LOGOS)) {
+                    const logo = document.createElement('img');
+                    logo.src = src;
+                    logo.alt = '';
+                    logos.append(logo);
+                }
+                preference.append(logos);
+                venueName.textContent = 'Peu importe';
+            } else if (VENUES[person.venue]) {
+                venueName.textContent = VENUES[person.venue];
+            } else {
+                // « Peut-être » sans bar : la question reste ouverte au comité.
+                preference.classList.add('is-undecided');
+                const mark = document.createElement('span');
+                mark.className = 'pref-mark';
+                mark.textContent = '?';
+                mark.setAttribute('aria-hidden', 'true');
+                preference.append(mark);
+                venueName.textContent = 'Bar en délibéré';
+            }
             preference.append(venueName);
             info.append(preference);
         } else {
@@ -598,8 +662,8 @@
         const venue =
             selectedVote === 'no'
                 ? null
-                : document.querySelector('input[name="venue"]:checked')?.value;
-        if (selectedVote !== 'no' && !Object.hasOwn(VENUES, venue)) {
+                : document.querySelector('input[name="venue"]:checked')?.value ?? null;
+        if (selectedVote === 'yes' && !Object.hasOwn(VENUES, venue)) {
             document.querySelector('input[name="venue"]').reportValidity();
             return;
         }
@@ -640,7 +704,10 @@
         $('#no-confirm').addEventListener('click', confirmNo);
         $('#no-stay').addEventListener('click', switchToYes);
         $('#no-dialog').addEventListener('close', () => { pendingNoName = null; });
-        $('#name').addEventListener('input', () => $('#name').setCustomValidity(''));
+        $('#name').addEventListener('input', () => {
+            $('#name').setCustomValidity('');
+            updateSubmitState();
+        });
         $('#refresh-votes').addEventListener('click', refreshCurrentWeek);
         $('#remove').addEventListener('click', removeResponse);
         document.addEventListener('visibilitychange', () => {
@@ -651,7 +718,7 @@
             button.addEventListener('click', () => chooseVote(button.dataset.vote));
         });
         document.querySelectorAll('input[name="venue"]').forEach((input) => {
-            input.addEventListener('change', syncVenuePicker);
+            input.addEventListener('click', toggleVenue);
         });
     }
 
