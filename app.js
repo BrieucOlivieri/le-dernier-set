@@ -280,7 +280,11 @@
             const old = before.get(person.user_id);
             if (old && old.vote === person.vote) continue;
             freshIds.add(person.user_id);
-            showLiveNote(person.vote, LIVE_MESSAGES[old ? 'change' : 'arrive'][person.vote](person.name));
+            showLiveNote(
+                LIVE_MESSAGES[old ? 'change' : 'arrive'][person.vote](person.name),
+                SQUADS[person.vote].emoji,
+                person.vote,
+            );
             if (person.vote === 'yes') someoneComes = true;
         }
         if (someoneComes) replayAnimation($('.beers'), 'is-cheering');
@@ -554,14 +558,15 @@
     }
 
     // 6. Notifications et animations
-    function showLiveNote(vote, text) {
+    // Petite bulle en haut de l'écran (votes en direct, rallye…). tone : yes, maybe, no ou rally.
+    function showLiveNote(text, iconName, tone) {
         const feed = $('#live-feed');
         const note = document.createElement('div');
-        note.className = 'live-note live-note-' + vote;
+        note.className = 'live-note live-note-' + tone;
         const icon = document.createElement('span');
         icon.className = 'live-note-icon';
         icon.setAttribute('aria-hidden', 'true');
-        icon.append(emoji(SQUADS[vote].emoji));
+        icon.append(emoji(iconName));
         const label = document.createElement('span');
         label.textContent = text;
         note.append(icon, label);
@@ -843,6 +848,7 @@
         });
         $('#refresh-votes').addEventListener('click', refreshCurrentWeek);
         $('#remove').addEventListener('click', removeResponse);
+        $('#rally').addEventListener('click', hitShuttle);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshCurrentWeek();
         });
@@ -898,7 +904,106 @@
         countdown.replaceChildren(prefix, ...parts.flatMap((part) => [' ', part]));
     }
 
-    // 9. Démarrage et restauration du formulaire
+    // 9. Easter egg : rallye de volant. Chaque clic sur le logo envoie un volant ;
+    // en enchaînant les clics, on compte l'échange et on garde le record dans le navigateur.
+    const RALLY_GAP_MS = 1500; // sans clic pendant ce délai, l'échange est terminé
+    const RALLY_RECORD_KEY = 'le-dernier-set:rally-record';
+    const RALLY_MILESTONES = {
+        10: 'Joli rallye !',
+        20: 'Ça tient la cadence !',
+        30: 'Tu devrais peut-être aller jouer, non ?',
+        50: 'Bon. Le bar, maintenant.',
+        100: 'Légende du créneau. Respect.',
+    };
+    // Volant extrait de l'emoji 🏸 Fluent (assets/emoji/shuttle.svg), bouchon vers la droite :
+    // il vole bouchon devant. SHUTTLE_SIZE en px.
+    const SHUTTLE_SIZE = 40;
+    let rallyHits = 0;
+    let rallyTimer;
+
+    function readRallyRecord() {
+        try {
+            return Number(localStorage.getItem(RALLY_RECORD_KEY)) || 0;
+        } catch {
+            return 0;
+        }
+    }
+
+    function saveRallyRecord(hits) {
+        try {
+            localStorage.setItem(RALLY_RECORD_KEY, String(hits));
+        } catch {
+            // Navigation privée ou stockage bloqué : le record n'est simplement pas gardé.
+        }
+    }
+
+    function launchShuttle() {
+        if (reduceMotion || document.querySelectorAll('.shuttle').length >= 12) return;
+        const origin = $('#rally').getBoundingClientRect();
+        const start = { x: origin.left + origin.width / 2, y: origin.top + origin.height / 2 };
+        const end = { x: innerWidth + 60, y: innerHeight * (0.35 + Math.random() * 0.55) };
+        // Courbe de Bézier : le volant monte un peu puis plonge vers le bord droit.
+        const control = {
+            x: start.x + (end.x - start.x) * (0.35 + Math.random() * 0.2),
+            y: Math.min(start.y, end.y) - 90 - Math.random() * 110,
+        };
+        const point = (t, axis) =>
+            (1 - t) ** 2 * start[axis] + 2 * (1 - t) * t * control[axis] + t ** 2 * end[axis];
+        const angle = (t) => {
+            const dx = 2 * (1 - t) * (control.x - start.x) + 2 * t * (end.x - control.x);
+            const dy = 2 * (1 - t) * (control.y - start.y) + 2 * t * (end.y - control.y);
+            return (Math.atan2(dy, dx) * 180) / Math.PI;
+        };
+        const keyframes = [];
+        for (let step = 0; step <= 16; step++) {
+            const t = 1 - (1 - step / 16) ** 1.5; // part vite puis ralentit, comme un vrai volant
+            keyframes.push({
+                transform: `translate(${point(t, 'x') - SHUTTLE_SIZE / 2}px, ${point(t, 'y') - SHUTTLE_SIZE / 2}px) rotate(${angle(t)}deg)`,
+                offset: step / 16,
+            });
+        }
+        const shuttle = document.createElement('img');
+        shuttle.className = 'shuttle';
+        shuttle.src = 'assets/emoji/shuttle.svg';
+        shuttle.alt = '';
+        shuttle.width = SHUTTLE_SIZE;
+        shuttle.height = SHUTTLE_SIZE;
+        document.body.append(shuttle);
+        shuttle
+            .animate(keyframes, { duration: 1000 + Math.random() * 350, easing: 'linear', fill: 'forwards' })
+            .finished.then(() => shuttle.remove(), () => shuttle.remove());
+    }
+
+    function hitShuttle() {
+        rallyHits++;
+        launchShuttle();
+        replayAnimation($('.brandiconbad'), 'is-swinging');
+        const counter = $('#rally-count');
+        counter.textContent = '×' + rallyHits;
+        counter.classList.toggle('is-visible', rallyHits > 1);
+        if (rallyHits > 1) replayAnimation(counter, 'is-bumped');
+        if (RALLY_MILESTONES[rallyHits]) showLiveNote(RALLY_MILESTONES[rallyHits], 'badminton', 'rally');
+        clearTimeout(rallyTimer);
+        rallyTimer = setTimeout(endRally, RALLY_GAP_MS);
+    }
+
+    function endRally() {
+        const hits = rallyHits;
+        rallyHits = 0;
+        $('#rally-count').classList.remove('is-visible');
+        if (hits < 3) return; // un ou deux clics : pas de bilan
+        const record = readRallyRecord();
+        let verdict = 'Record : ' + record + '.';
+        if (hits > record) {
+            saveRallyRecord(hits);
+            verdict = record ? 'Nouveau record !' : 'Premier record posé.';
+        } else if (hits === record) {
+            verdict = 'Record égalé !';
+        }
+        showLiveNote('Échange de ' + hits + ' coups. ' + verdict, 'badminton', 'rally');
+    }
+
+    // 10. Démarrage et restauration du formulaire
     function init() {
         renderReasons();
         $('#date').textContent = paris.toLocaleDateString('fr-FR', {

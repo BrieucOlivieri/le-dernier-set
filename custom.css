@@ -117,11 +117,15 @@ header {
 }
 
 .brandicon {
+    position: relative;
+    border: 0;
     background: var(--ink);
     color: var(--yellow);
     border-radius: 12px;
     padding: 6px 12px;
     font-size: 23px;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .brandiconbad {
@@ -2178,5 +2182,74 @@ header {
 
     .live-note.is-leaving {
         translate: none;
+    }
+}
+
+/* Easter egg : rallye de volant (clic sur le logo) */
+.brandiconbad.is-swinging {
+    animation: racket-swing 0.28s ease-out;
+}
+
+@keyframes racket-swing {
+    0% { transform: translateY(-1px) rotate(0); }
+    35% { transform: translateY(-1px) rotate(-38deg); }
+    100% { transform: translateY(-1px) rotate(0); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .brandicon .brandiconbad {
+        transition: transform 0.2s ease;
+    }
+
+    .brandicon:hover .brandiconbad {
+        transform: translateY(-1px) rotate(-14deg);
+    }
+}
+
+.rally-count {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: var(--fs-label);
+    font-weight: 850;
+    letter-spacing: 0;
+    line-height: 1.5;
+    box-shadow: 0 2px 6px -2px rgba(20, 40, 30, 0.5);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+}
+
+.rally-count.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.rally-count.is-bumped {
+    animation: pop-bump 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.shuttle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 44;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 3px rgba(20, 40, 30, 0.2));
+}
+
+.live-note-rally {
+    background: var(--green);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brandiconbad.is-swinging,
+    .rally-count.is-bumped {
+        animation: none;
     }
 }

@@ -8,6 +8,7 @@ distribués sous [licence MIT](https://github.com/microsoft/fluentui-emoji/blob/
 > The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 Ils remplacent les emojis système pour que le site ait le même rendu sur iPhone, Android et ordinateur.
+`shuttle.svg` (le volant du rallye, easter egg du logo) est extrait de l'emoji 🏸 Badminton Fluent et pivoté bouchon vers la droite.
 `couple.svg` (💑) n'existe pas dans le jeu Fluent publié : il est recomposé à partir de deux « Person » et du « Red heart » Fluent (même licence MIT).
 
 Pour en ajouter un : télécharger `assets/<Nom>/Color/<nom>_color.svg` depuis le dépôt Fluent Emoji
