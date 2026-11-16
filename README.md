@@ -13,6 +13,7 @@ Site statique du rendez-vous badminton du jeudi. La version 1 fonctionne avec HT
 - `supabase/002_vote_rollover_2300.sql` : passage au jeudi suivant dès 23 h, heure de Paris.
 - `supabase/003_any_venue.sql` : choix « Peu importe » pour les deux bars.
 - `supabase/004_optional_maybe_venue.sql` : bar facultatif pour « Peut-être ».
+- `supabase/005_realtime_votes.sql` : votes diffusés en direct (Supabase Realtime).
 - `assets/` : images des bars et `og-image.png` (aperçu 1200×630 affiché quand le lien est partagé ; incrémenter `?v=` dans `index.html` quand on la change).
 - `assets/emoji/` : emojis en SVG (Fluent Emoji de Microsoft, licence MIT, style Windows 11) pour un rendu identique sur tous les appareils.
 
@@ -40,7 +41,7 @@ Le site affiche les votes communs du jeudi courant ou à venir. Chaque jeudi à 
 
 ## Configuration Supabase
 
-Le projet « Bar Jeudi ? » est configuré dans `config.js`. Les connexions anonymes sont activées. Appliquer les migrations `supabase/001_weekly_votes.sql`, `supabase/002_vote_rollover_2300.sql`, `supabase/003_any_venue.sql`, puis `supabase/004_optional_maybe_venue.sql` dans cet ordre dans l'éditeur SQL. Le choix « Peu importe » compte comme partant, sans ajouter de point à l'un des bars. Le bar est obligatoire pour « Je viens » et facultatif pour « Peut-être » ; les « Peut-être » ne comptent jamais dans le match des bars. Le fichier de configuration du navigateur contient uniquement la clé **publishable** ; n'y ajoute jamais une clé **secret** ou `service_role`.
+Le projet « Bar Jeudi ? » est configuré dans `config.js`. Les connexions anonymes sont activées. Appliquer les migrations `supabase/001_weekly_votes.sql`, `supabase/002_vote_rollover_2300.sql`, `supabase/003_any_venue.sql`, `supabase/004_optional_maybe_venue.sql`, puis `supabase/005_realtime_votes.sql` dans cet ordre dans l'éditeur SQL. Le choix « Peu importe » compte comme partant, sans ajouter de point à l'un des bars. Le bar est obligatoire pour « Je viens » et facultatif pour « Peut-être » ; les « Peut-être » ne comptent jamais dans le match des bars. Avec la migration 005, les votes des autres apparaissent en direct ; sans elle, la page se met à jour toutes les 30 secondes quand elle est visible. Le compte à rebours vise jeudi 20 h (`MEETUP_HOUR` dans `app.js`). Le fichier de configuration du navigateur contient uniquement la clé **publishable** ; n'y ajoute jamais une clé **secret** ou `service_role`.
 
 Si Supabase est inaccessible, le site affiche une erreur et n'enregistre pas de faux vote en ligne. Le bouton « Actualiser les votes » permet de réessayer.
 

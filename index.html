@@ -34,7 +34,7 @@
         >Le Dernier Set<span aria-hidden="true">.</span>
       </div>
       <span class="header-note">
-        <span class="header-note-kicker">Jeudi soir</span>
+        <span class="header-note-kicker">Fin du match</span>
         <span class="header-note-title">Le verre <em>d’après.</em></span>
       </span>
     </header>
@@ -48,9 +48,10 @@
             le bad, ça te dit ?
           </p>
           <div class="datebadge">
-            <span class="datebadge-label">On se retrouve</span>
+            <span class="datebadge-label" id="countdown-label">On se retrouve</span>
             <strong id="date"></strong>
-            <span class="datebadge-note">Après le créneau</span>
+            <span class="datebadge-note">Après le créneau · 20 h</span>
+            <span class="countdown" id="countdown" role="timer"></span>
           </div>
         </div>
         <div class="poster" aria-label="Deux chopes trinquent">
@@ -164,7 +165,7 @@
         </section>
         <section class="card crew-card">
           <span class="tape tape-kraft" aria-hidden="true"></span>
-          <div class="kicker">02 / Le casting du jeudi</div>
+          <div class="kicker">02 / Le casting</div>
           <div class="people-head">
             <h2>La troisième <em>mi-temps</em></h2>
             <span class="count" id="count">0 partant</span>
@@ -212,12 +213,12 @@
       <aside class="notice">
         <span aria-hidden="true"><img class="emoji" src="assets/emoji/megaphone.svg" alt="" /></span>
         <p>
-          <strong>Votes partagés.</strong> Les réponses du jeudi sont visibles par
+          <strong>Votes partagés.</strong> Les réponses de la semaine sont visibles par
           tous les visiteurs. Tu peux modifier ou retirer la tienne depuis ce navigateur.
         </p>
       </aside>
       <footer class="bottom">
-        <span>Le Dernier Set · Imaginé pour les habitués du jeudi.</span
+        <span>Le Dernier Set · Imaginé pour les habitués du créneau.</span
         ><span>On compte les présents, pas les verres. <img class="emoji" src="assets/emoji/victory.svg" alt="" /></span>
       </footer>
     </main>
@@ -238,6 +239,7 @@
       </div>
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="live-feed" id="live-feed" aria-live="polite"></div>
     <script src="config.js" defer></script>
     <script src="vote-store.js" defer></script>
     <script src="app.js" defer></script>

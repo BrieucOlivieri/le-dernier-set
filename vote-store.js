@@ -60,6 +60,16 @@
                 return data;
             },
 
+            // Prévient dès qu'un vote est ajouté, modifié ou retiré (Supabase Realtime).
+            // Nécessite la migration 005 ; sans elle, l'app retombe sur l'actualisation périodique.
+            subscribe(onChange) {
+                const channel = client
+                    .channel('weekly-votes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'weekly_votes' }, () => onChange())
+                    .subscribe();
+                return () => client.removeChannel(channel);
+            },
+
             async remove(eventDate) {
                 const { error } = await client
                     .from('weekly_votes')

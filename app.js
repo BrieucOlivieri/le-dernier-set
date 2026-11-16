@@ -109,9 +109,38 @@
         },
     };
 
+    const MEETUP_HOUR = 20; // fin du créneau de bad, heure de Paris : cible du compte à rebours
+    const LIVE_POLL_MS = 30_000; // filet de sécurité si le direct Supabase ne répond pas
+    // Annonces quand quelqu'un d'autre vote pendant qu'on regarde la page.
+    const LIVE_MESSAGES = {
+        arrive: {
+            yes: (name) => name + ' vient boire un verre !',
+            maybe: (name) => name + ' réfléchit encore…',
+            no: (name) => name + ' déclare forfait.',
+        },
+        change: {
+            yes: (name) => name + ' rejoint les légendes !',
+            maybe: (name) => name + ' passe au comité de réflexion.',
+            no: (name) => name + ' rejoint le canapé.',
+        },
+    };
+    // Phrase de la bulle de l'affiche selon le nombre de partants (seuil minimum, texte).
+    const POSTER_LINES = [
+        [7, '« Il va falloir des chopes. »'],
+        [4, '« Ça se remplit ! »'],
+        [2, '« Ça trinque déjà. »'],
+        [1, '« Un brave. Qui suit ? »'],
+        [0, '« Juste un verre. »'],
+    ];
+
     // 2. Date du prochain jeudi et état de la session
+    // Heure de Paris, quel que soit le fuseau de l'appareil.
+    function parisNow() {
+        return new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+    }
+
     function upcomingThursday() {
-        const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+        const date = parisNow();
         const daysAhead = (4 - date.getDay() + 7) % 7;
         date.setDate(date.getDate() + (daysAhead === 0 && date.getHours() >= 23 ? 7 : daysAhead));
         return date;
@@ -143,6 +172,11 @@
     let voteMutationPending = false;
     let voteVersion = 0;
     let voteBusy = true;
+    let refreshQueued = false; // un changement est arrivé pendant un chargement : on recharge après
+    let liveRefreshTimer;
+    let liveStarted = false;
+    let lastYesCount = null;
+    const freshIds = new Set(); // lignes à faire apparaître en glissant au prochain rendu
 
     // 3. Chargement des votes partagés et restauration du formulaire
     function setVoteBusy(busy) {
@@ -182,13 +216,17 @@
     }
 
     async function refreshSharedVotes(restoreSavedForm = false) {
-        if (refreshingVotes || voteMutationPending) return;
+        if (refreshingVotes || voteMutationPending) {
+            refreshQueued = true;
+            return;
+        }
         refreshingVotes = true;
         const version = voteVersion;
         try {
             if (!voteStore) voteStore = await window.createVoteStore(window.GSL_SUPABASE);
             const people = await voteStore.list(week);
             if (version !== voteVersion) return;
+            if (sharedVotesReady) announceChanges(sharedPeople, people);
             sharedPeople = people;
             response = sharedPeople.find((person) => person.user_id === voteStore.userId) || null;
             sharedVotesReady = true;
@@ -197,6 +235,7 @@
             $('#message').textContent = '';
             setVoteBusy(false);
             render();
+            startLiveUpdates();
         } catch {
             sharedVotesError = true;
             $('#message').textContent = 'Impossible de charger les votes. Réessaie avec le bouton Actualiser.';
@@ -204,7 +243,47 @@
             renderActions();
         } finally {
             refreshingVotes = false;
+            flushQueuedRefresh();
         }
+    }
+
+    function flushQueuedRefresh() {
+        if (!refreshQueued || refreshingVotes || voteMutationPending) return;
+        refreshQueued = false;
+        void refreshSharedVotes();
+    }
+
+    // Direct : Supabase prévient à chaque vote, et une actualisation toutes les 30 s
+    // sert de filet de sécurité (onglet visible uniquement).
+    function startLiveUpdates() {
+        if (liveStarted) return;
+        liveStarted = true;
+        try {
+            voteStore.subscribe(() => {
+                clearTimeout(liveRefreshTimer);
+                liveRefreshTimer = setTimeout(refreshCurrentWeek, 300);
+            });
+        } catch {
+            // L'actualisation périodique prend le relais.
+        }
+        setInterval(() => {
+            if (!document.hidden) refreshCurrentWeek();
+        }, LIVE_POLL_MS);
+    }
+
+    // Compare l'ancienne et la nouvelle liste pour annoncer les votes des autres.
+    function announceChanges(previous, next) {
+        const before = new Map(previous.map((person) => [person.user_id, person]));
+        let someoneComes = false;
+        for (const person of next) {
+            if (person.user_id === voteStore.userId) continue;
+            const old = before.get(person.user_id);
+            if (old && old.vote === person.vote) continue;
+            freshIds.add(person.user_id);
+            showLiveNote(person.vote, LIVE_MESSAGES[old ? 'change' : 'arrive'][person.vote](person.name));
+            if (person.vote === 'yes') someoneComes = true;
+        }
+        if (someoneComes) replayAnimation($('.beers'), 'is-cheering');
     }
 
     function ensureCurrentWeek() {
@@ -340,6 +419,7 @@
         }
         row.prepend(avatar, info);
         if (person === response && person.vote === 'no') row.classList.add('is-mine');
+        if (freshIds.has(person.user_id)) row.classList.add('is-new');
         return row;
     }
 
@@ -357,7 +437,7 @@
             const title = document.createElement('h3');
             title.textContent = 'Le barman commence à douter.';
             const detail = document.createElement('p');
-            detail.textContent = 'Personne n’a encore répondu pour jeudi. À toi de le rassurer !';
+            detail.textContent = 'Personne n’a encore répondu. À toi de le rassurer !';
             copy.append(title, detail);
             empty.append(icon, copy);
             container.append(empty);
@@ -433,7 +513,7 @@
         $('#refresh-label').textContent = sharedVotesError
             ? 'Votes non actualisés. Réessaie.'
             : sharedVotesReady
-              ? 'Votes du jeudi partagés entre les visiteurs.'
+              ? 'Votes partagés en direct.'
               : 'Connexion aux votes en cours.';
         $('#save').textContent = response
             ? 'Mettre à jour ma réponse ↗'
@@ -444,12 +524,55 @@
     function render() {
         const { counts, bars } = getResults(sharedPeople);
         $('#count').textContent = counts.yes + ' partant' + (counts.yes > 1 ? 's' : '');
+        if (sharedVotesReady) {
+            if (lastYesCount !== null && counts.yes !== lastYesCount) {
+                replayAnimation($('#count'), 'is-bumped');
+            }
+            lastYesCount = counts.yes;
+        }
+        renderPoster(counts.yes);
         renderPeople(sharedPeople);
+        freshIds.clear();
         renderVenueResults(counts, bars);
         renderActions();
     }
 
+    function renderPoster(partants) {
+        const line = POSTER_LINES.find(([minimum]) => partants >= minimum)[1];
+        const bubble = $('.bubble');
+        if (bubble.textContent === line) return;
+        bubble.textContent = line;
+        if (sharedVotesReady) replayAnimation(bubble, 'is-popping');
+    }
+
+    // Relance une animation CSS même si la classe est déjà présente.
+    function replayAnimation(element, className) {
+        if (reduceMotion || !element) return;
+        element.classList.remove(className);
+        void element.offsetWidth;
+        element.classList.add(className);
+    }
+
     // 6. Notifications et animations
+    function showLiveNote(vote, text) {
+        const feed = $('#live-feed');
+        const note = document.createElement('div');
+        note.className = 'live-note live-note-' + vote;
+        const icon = document.createElement('span');
+        icon.className = 'live-note-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.append(emoji(SQUADS[vote].emoji));
+        const label = document.createElement('span');
+        label.textContent = text;
+        note.append(icon, label);
+        feed.append(note);
+        while (feed.children.length > 3) feed.firstElementChild.remove();
+        setTimeout(() => {
+            note.classList.add('is-leaving');
+            setTimeout(() => note.remove(), 400);
+        }, 4500);
+    }
+
     function showToast(vote, venue) {
         const notification = $('#toast');
         notification.className = 'toast toast-' + vote;
@@ -638,6 +761,7 @@
             sharedPeople.push(saved);
             sharedPeople.sort((a, b) => a.created_at.localeCompare(b.created_at));
             response = saved;
+            freshIds.add(saved.user_id);
             $('#message').textContent = '';
             render();
             celebrate(response.vote, response.venue);
@@ -646,6 +770,7 @@
         } finally {
             voteMutationPending = false;
             setVoteBusy(false);
+            flushQueuedRefresh();
         }
     }
 
@@ -703,6 +828,7 @@
         } finally {
             voteMutationPending = false;
             setVoteBusy(false);
+            flushQueuedRefresh();
         }
     }
 
@@ -729,7 +855,67 @@
         });
     }
 
-    // 8. Démarrage et restauration du formulaire
+    // 8. Compte à rebours jusqu'à la fin du créneau (heure de Paris)
+    function countdownPart(value, unit, pad = true) {
+        const part = document.createElement('span');
+        part.className = 'countdown-part';
+        const number = document.createElement('b');
+        number.textContent = pad ? String(value).padStart(2, '0') : String(value);
+        part.append(number, ' ' + unit); // espace fine insécable : « 04 h »
+        return part;
+    }
+
+    function renderCountdown() {
+        const now = parisNow();
+        const start = new Date(paris);
+        start.setHours(MEETUP_HOUR, 0, 0, 0);
+        const left = Math.floor((start - now) / 1000);
+        const isLive = left <= 0;
+        const isToday = !isLive && dateKey(now) === week;
+        const badge = $('.datebadge');
+        badge.classList.toggle('is-today', isToday);
+        badge.classList.toggle('is-live', isLive);
+        $('#countdown-label').textContent = isLive
+            ? 'C’est l’heure !'
+            : isToday ? 'C’est ce soir !' : 'On se retrouve';
+        const countdown = $('#countdown');
+        if (isLive) {
+            countdown.replaceChildren(emoji('beers'), ' Tout le monde au comptoir');
+            return;
+        }
+        const days = Math.floor(left / 86_400);
+        const parts = [];
+        if (days) parts.push(countdownPart(days, 'j', false));
+        parts.push(
+            countdownPart(Math.floor((left % 86_400) / 3600), 'h'),
+            countdownPart(Math.floor((left % 3600) / 60), 'min'),
+            countdownPart(left % 60, 's'),
+        );
+        const prefix = document.createElement('span');
+        prefix.className = 'countdown-prefix';
+        prefix.textContent = 'dans';
+        // Les espaces entre les morceaux servent aux lecteurs d'écran ; la mise en page vient du CSS.
+        countdown.replaceChildren(prefix, ...parts.flatMap((part) => [' ', part]));
+    }
+
+    // 9. Micro-interactions : l'affiche suit la souris (ordinateur uniquement)
+    function bindPosterTilt() {
+        const poster = $('.poster');
+        if (reduceMotion || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+        poster.addEventListener('pointermove', (event) => {
+            const box = poster.getBoundingClientRect();
+            const x = (event.clientX - box.left) / box.width - 0.5;
+            const y = (event.clientY - box.top) / box.height - 0.5;
+            poster.style.setProperty('--tilt-x', (x * 12).toFixed(2) + 'deg');
+            poster.style.setProperty('--tilt-y', (-y * 12).toFixed(2) + 'deg');
+        });
+        poster.addEventListener('pointerleave', () => {
+            poster.style.removeProperty('--tilt-x');
+            poster.style.removeProperty('--tilt-y');
+        });
+    }
+
+    // 10. Démarrage et restauration du formulaire
     function init() {
         renderReasons();
         $('#date').textContent = paris.toLocaleDateString('fr-FR', {
@@ -741,6 +927,9 @@
         chooseVote(selectedVote);
         syncVenuePicker();
         render();
+        renderCountdown();
+        setInterval(renderCountdown, 1000);
+        bindPosterTilt();
 
         bindEvents();
         setVoteBusy(true);
