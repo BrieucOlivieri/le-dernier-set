@@ -120,7 +120,7 @@ header {
     background: var(--ink);
     color: var(--yellow);
     border-radius: 12px;
-    padding: 6px 10px;
+    padding: 6px 12px;
     font-size: 23px;
 }
 
@@ -234,8 +234,6 @@ header {
     place-items: center;
     overflow: hidden;
     transition: transform .3s ease;
-  backface-visibility: hidden;   /* aide le navigateur à rendre le texte plus net */
-  will-change: transform;
 }
 
 .poster:hover {

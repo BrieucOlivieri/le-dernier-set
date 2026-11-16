@@ -898,24 +898,7 @@
         countdown.replaceChildren(prefix, ...parts.flatMap((part) => [' ', part]));
     }
 
-    // 9. Micro-interactions : l'affiche suit la souris (ordinateur uniquement)
-    function bindPosterTilt() {
-        const poster = $('.poster');
-        if (reduceMotion || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-        poster.addEventListener('pointermove', (event) => {
-            const box = poster.getBoundingClientRect();
-            const x = (event.clientX - box.left) / box.width - 0.5;
-            const y = (event.clientY - box.top) / box.height - 0.5;
-            poster.style.setProperty('--tilt-x', (x * 12).toFixed(2) + 'deg');
-            poster.style.setProperty('--tilt-y', (-y * 12).toFixed(2) + 'deg');
-        });
-        poster.addEventListener('pointerleave', () => {
-            poster.style.removeProperty('--tilt-x');
-            poster.style.removeProperty('--tilt-y');
-        });
-    }
-
-    // 10. Démarrage et restauration du formulaire
+    // 9. Démarrage et restauration du formulaire
     function init() {
         renderReasons();
         $('#date').textContent = paris.toLocaleDateString('fr-FR', {
@@ -929,7 +912,6 @@
         render();
         renderCountdown();
         setInterval(renderCountdown, 1000);
-        bindPosterTilt();
 
         bindEvents();
         setVoteBusy(true);
