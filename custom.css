@@ -126,6 +126,7 @@ header {
     font-size: 23px;
     line-height: 1.5;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; /* clics rapides du rallye sans zoom au double-tap */
 }
 
 .brandiconbad {
@@ -2251,5 +2252,33 @@ header {
     .brandiconbad.is-swinging,
     .rally-count.is-bumped {
         animation: none;
+    }
+}
+
+/* Easter egg : tournée générale (clics rapides sur les chopes de l'affiche) */
+.beers {
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.beer-rain {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.beer-drop {
+    position: absolute;
+    top: 0;
+    filter: drop-shadow(0 6px 4px rgba(20, 40, 30, 0.18));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .beer-rain {
+        display: none;
     }
 }

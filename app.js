@@ -177,6 +177,9 @@
     let liveStarted = false;
     let lastYesCount = null;
     const freshIds = new Set(); // lignes à faire apparaître en glissant au prochain rendu
+    let posterPartants = 0;
+    let bubbleOverrideUntil = 0;
+    let bubbleTimer;
 
     // 3. Chargement des votes partagés et restauration du formulaire
     function setVoteBusy(busy) {
@@ -542,11 +545,27 @@
     }
 
     function renderPoster(partants) {
-        const line = POSTER_LINES.find(([minimum]) => partants >= minimum)[1];
+        posterPartants = partants;
+        if (Date.now() < bubbleOverrideUntil) return; // un easter egg occupe la bulle
+        setBubble(POSTER_LINES.find(([minimum]) => partants >= minimum)[1]);
+    }
+
+    function setBubble(line) {
         const bubble = $('.bubble');
         if (bubble.textContent === line) return;
         bubble.textContent = line;
         if (sharedVotesReady) replayAnimation(bubble, 'is-popping');
+    }
+
+    // Affiche un texte temporaire dans la bulle, puis revient au texte normal.
+    function shoutInBubble(line, duration = 3500) {
+        bubbleOverrideUntil = Date.now() + duration;
+        setBubble(line);
+        clearTimeout(bubbleTimer);
+        bubbleTimer = setTimeout(() => {
+            bubbleOverrideUntil = 0;
+            renderPoster(posterPartants);
+        }, duration);
     }
 
     // Relance une animation CSS même si la classe est déjà présente.
@@ -849,6 +868,7 @@
         $('#refresh-votes').addEventListener('click', refreshCurrentWeek);
         $('#remove').addEventListener('click', removeResponse);
         $('#rally').addEventListener('click', hitShuttle);
+        $('.beers').addEventListener('click', clinkBeers);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshCurrentWeek();
         });
@@ -1003,7 +1023,64 @@
         showLiveNote('Échange de ' + hits + ' coups. ' + verdict, 'badminton', 'rally');
     }
 
-    // 10. Démarrage et restauration du formulaire
+    // 10. Easter egg : tournée générale. Cliquer vite sur les chopes de l'affiche
+    // les fait trinquer ; à 5 clics, tournée générale et pluie de chopes.
+    const ROUND_GAP_MS = 1200; // sans clic pendant ce délai, on repart de zéro
+    const ROUND_LINES = {
+        5: '« Tournée générale ! »',
+        10: '« C’est toi qui paies, du coup. »',
+        15: '« Le barman te regarde bizarrement. »',
+        20: '« Bon. On te coupe. »',
+    };
+    let roundClicks = 0;
+    let roundTimer;
+
+    function clinkBeers() {
+        roundClicks++;
+        replayAnimation($('.beers'), 'is-cheering');
+        const line = ROUND_LINES[roundClicks];
+        if (line) {
+            shoutInBubble(line);
+            if (roundClicks <= 10) rainBeers();
+        }
+        clearTimeout(roundTimer);
+        roundTimer = setTimeout(() => (roundClicks = 0), ROUND_GAP_MS);
+    }
+
+    function rainBeers() {
+        if (reduceMotion) return;
+        document.querySelector('.beer-rain')?.remove();
+        const layer = document.createElement('div');
+        layer.className = 'beer-rain';
+        layer.setAttribute('aria-hidden', 'true');
+        document.body.append(layer);
+        const total = innerWidth < 600 ? 16 : 30;
+        for (let i = 0; i < total; i++) {
+            const size = 30 + Math.random() * 22;
+            const mug = emoji(i % 3 === 0 ? 'beers' : 'beer');
+            mug.className = 'beer-drop';
+            mug.style.width = mug.style.height = size + 'px';
+            mug.style.left = Math.random() * (innerWidth - size) + 'px';
+            layer.append(mug);
+            const sway = (Math.random() - 0.5) * 120;
+            const spin = (Math.random() - 0.5) * 70;
+            mug.animate(
+                [
+                    { transform: `translate(0, -${size + 20}px) rotate(${-spin / 2}deg)` },
+                    { transform: `translate(${sway}px, ${innerHeight + 40}px) rotate(${spin}deg)` },
+                ],
+                {
+                    duration: 1600 + Math.random() * 1200,
+                    delay: Math.random() * 900,
+                    easing: 'cubic-bezier(.45, .05, .7, .4)', // accélère en tombant
+                    fill: 'both',
+                },
+            );
+        }
+        setTimeout(() => layer.remove(), 3800);
+    }
+
+    // 11. Démarrage et restauration du formulaire
     function init() {
         renderReasons();
         $('#date').textContent = paris.toLocaleDateString('fr-FR', {
