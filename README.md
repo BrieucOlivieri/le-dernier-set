@@ -13,7 +13,8 @@ Site statique du rendez-vous badminton du jeudi. La version 1 fonctionne avec HT
 - `supabase/002_vote_rollover_2300.sql` : passage au jeudi suivant dès 23 h, heure de Paris.
 - `supabase/003_any_venue.sql` : choix « Peu importe » pour les deux bars.
 - `supabase/004_optional_maybe_venue.sql` : bar facultatif pour « Peut-être ».
-- `assets/` : images des bars et `og-image.png` (aperçu 1200×630 affiché quand le lien est partagé).
+- `assets/` : images des bars et `og-image.png` (aperçu 1200×630 affiché quand le lien est partagé ; incrémenter `?v=` dans `index.html` quand on la change).
+- `assets/emoji/` : emojis en SVG (Fluent Emoji de Microsoft, licence MIT, style Windows 11) pour un rendu identique sur tous les appareils.
 
 Pour modifier un composant, ajuste sa règle existante dans `custom.css`. Les sections numérotées de `app.js` regroupent la configuration, le stockage, le formulaire et le rendu.
 

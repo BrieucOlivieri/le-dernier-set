@@ -4,10 +4,17 @@
     const $ = (selector) => document.querySelector(selector);
     const VENUES = { pavane: 'La Pavane', bryans: 'Le Bryan’s', any: 'Peu importe' };
     const VENUE_LOGOS = { pavane: 'assets/pavane.webp', bryans: 'assets/bryans.jpg' };
-    const LOCATION_ICON = '📍';
+    // Emojis en SVG (Fluent Emoji de Microsoft, MIT) : même rendu sur iPhone, Android et ordinateur.
+    function emoji(name) {
+        const image = document.createElement('img');
+        image.className = 'emoji';
+        image.src = 'assets/emoji/' + name + '.svg';
+        image.alt = '';
+        return image;
+    }
     const REASONS = {
         moitie: {
-            emoji: '💑',
+            emoji: 'couple',
             label: 'Ma moitié m’attend',
             chip: 'Ma moitié',
             jokes: [
@@ -17,7 +24,7 @@
             ],
         },
         fatigue: {
-            emoji: '😴',
+            emoji: 'sleeping',
             label: 'Fatigue générale',
             chip: 'Fatigue',
             jokes: [
@@ -27,7 +34,7 @@
             ],
         },
         boulot: {
-            emoji: '💼',
+            emoji: 'briefcase',
             label: 'Boulot demain',
             chip: 'Boulot',
             jokes: [
@@ -37,7 +44,7 @@
             ],
         },
         budget: {
-            emoji: '💸',
+            emoji: 'money',
             label: 'Fin de mois',
             chip: 'Budget',
             jokes: [
@@ -47,7 +54,7 @@
             ],
         },
         blessure: {
-            emoji: '🤕',
+            emoji: 'bandage',
             label: 'Blessure de guerre',
             chip: 'Blessure',
             jokes: [
@@ -57,7 +64,7 @@
             ],
         },
         canape: {
-            emoji: '🛋️',
+            emoji: 'couch',
             label: 'Le canapé m’appelle',
             chip: 'Canapé',
             jokes: [
@@ -67,7 +74,7 @@
             ],
         },
         mystere: {
-            emoji: '🙈',
+            emoji: 'monkey',
             label: 'Je préfère ne pas dire',
             chip: 'Mystère',
             jokes: [
@@ -86,17 +93,17 @@
 
     const SQUADS = {
         yes: {
-            emoji: '🍻',
+            emoji: 'beers',
             title: 'Les légendes <em>sont de sortie</em>',
             empty: 'Premier arrivé, premier héros. La place est libre.',
         },
         maybe: {
-            emoji: '🤔',
+            emoji: 'thinking',
             title: 'Le comité <em>de réflexion</em>',
             empty: 'Aucun dossier en attente. Une efficacité rare.',
         },
         no: {
-            emoji: '🛋️',
+            emoji: 'couch',
             title: 'Le canapé <em>a gagné</em>',
             empty: 'Personne au canapé. Quelle belle équipe.',
         },
@@ -327,7 +334,7 @@
             if (reason) {
                 const chip = document.createElement('span');
                 chip.className = 'person-reason';
-                chip.textContent = reason.emoji + ' ' + reason.chip;
+                chip.append(emoji(reason.emoji), ' ' + reason.chip);
                 row.append(chip);
             }
         }
@@ -344,7 +351,7 @@
             empty.className = 'crew-empty';
             const icon = document.createElement('span');
             icon.className = 'crew-empty-icon';
-            icon.textContent = '🍺';
+            icon.append(emoji('beer'));
             icon.setAttribute('aria-hidden', 'true');
             const copy = document.createElement('div');
             const title = document.createElement('h3');
@@ -365,7 +372,7 @@
             head.className = 'squad-head';
             const icon = document.createElement('span');
             icon.className = 'squad-icon';
-            icon.textContent = meta.emoji;
+            icon.append(emoji(meta.emoji));
             icon.setAttribute('aria-hidden', 'true');
             const title = document.createElement('h3');
             title.innerHTML = meta.title;
@@ -447,7 +454,7 @@
         const notification = $('#toast');
         notification.className = 'toast toast-' + vote;
         const icon = document.createElement('span');
-        icon.textContent = { yes: '🍻', maybe: '🤔', no: '🛋️' }[vote];
+        icon.append(emoji(SQUADS[vote].emoji));
         icon.setAttribute('aria-hidden', 'true');
         const message = document.createElement('span');
         message.className = 'toast-text';
@@ -526,7 +533,7 @@
             if (isBoo) {
                 piece.textContent = booTexts[i % booTexts.length];
             } else if (i % 12 === 0) {
-                piece.textContent = ['🏸', '🍻'][(i / 12) % 2];
+                piece.append(emoji(['badminton', 'beers'][(i / 12) % 2]));
             } else {
                 piece.style.background = colors[i % colors.length];
                 piece.style.width = 6 + Math.random() * 6 + 'px';
@@ -588,13 +595,13 @@
             input.type = 'radio';
             input.name = 'no-reason';
             input.value = key;
-            const emoji = document.createElement('span');
-            emoji.className = 'no-reason-emoji';
-            emoji.textContent = reason.emoji;
-            emoji.setAttribute('aria-hidden', 'true');
+            const icon = document.createElement('span');
+            icon.className = 'no-reason-emoji';
+            icon.append(emoji(reason.emoji));
+            icon.setAttribute('aria-hidden', 'true');
             const text = document.createElement('span');
             text.textContent = reason.label;
-            label.append(input, emoji, text);
+            label.append(input, icon, text);
             choices.append(label);
         }
     }
@@ -730,7 +737,7 @@
             day: 'numeric',
             month: 'long',
         });
-        $('#location-icon').textContent = LOCATION_ICON;
+        $('#location-icon').append(emoji('pin'));
         chooseVote(selectedVote);
         syncVenuePicker();
         render();

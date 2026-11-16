@@ -48,6 +48,15 @@ button {
     cursor: pointer;
 }
 
+/* Emojis en SVG (assets/emoji, Fluent Emoji de Microsoft) : 1em suit la taille de police
+   de chaque emplacement, comme le faisait l'emoji texte. */
+.emoji {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
