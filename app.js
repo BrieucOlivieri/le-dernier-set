@@ -503,7 +503,7 @@
             const sign = document.createElement('button');
             sign.type = 'button';
             sign.className = 'attendance-cta';
-            sign.textContent = 'Signer en premier ↗';
+            sign.textContent = 'Signer en premier ✒️';
             sign.addEventListener('click', goToVoteForm);
             bottom.append(copy, sign);
             sheet.append(bottom);

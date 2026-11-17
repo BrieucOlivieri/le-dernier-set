@@ -3820,3 +3820,654 @@ button.attendance-hint {
         display: none;
     }
 }
+
+/* Roman, inarrêtable : la « Roman-o-matic » tire au sort sa soirée (bad, escalade, foot… ou, rarement, le bar). */
+.slot {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    padding: max(10vh, 30px) 16px 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: rgb(36 55 46 / 40%);
+    animation: slot-fade 0.35s ease-out both;
+    transition: opacity 0.6s;
+}
+
+.slot.is-leaving {
+    opacity: 0;
+}
+
+/* Le fond : soleil de casino et bandeaux de sports qui défilent sans fin */
+.slot-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.slot-rays {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    width: 220vmax;
+    height: 220vmax;
+    margin: -110vmax 0 0 -110vmax;
+    background: repeating-conic-gradient(rgb(246 201 74 / 32%) 0 10deg, transparent 10deg 20deg);
+    -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 45%);
+    mask-image: radial-gradient(circle, #000 8%, transparent 45%);
+    animation: slot-spin 24s linear infinite;
+}
+
+.slot.is-jackpot .slot-rays {
+    background: repeating-conic-gradient(rgb(246 201 74 / 60%) 0 10deg, transparent 10deg 20deg);
+    animation-duration: 6s;
+}
+
+.slot-ticker {
+    position: absolute;
+    left: -20vw;
+    width: 140vw;
+    margin: 0;
+    padding: 6px 0;
+    overflow: hidden;
+    background: rgb(36 55 46 / 75%);
+    color: var(--yellow);
+    font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    rotate: -8deg;
+}
+
+.slot-ticker span {
+    display: inline-block;
+    animation: slot-ticker 14s linear infinite;
+}
+
+.slot-ticker:nth-of-type(1) {
+    top: 6%;
+}
+
+.slot-ticker:nth-of-type(2) {
+    top: 62%;
+    rotate: 6deg;
+}
+
+.slot-ticker:nth-of-type(2) span {
+    animation-direction: reverse;
+}
+
+.slot-ticker:nth-of-type(3) {
+    top: 86%;
+}
+
+.slot-question {
+    margin: -2px 0 0;
+    color: #fffbe6;
+    font: italic var(--fs-md) / 1.2 Georgia, serif;
+    text-align: center;
+}
+
+.slot-machine {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 12px;
+    width: min(78vw, 310px);
+    padding: 12px 14px 16px;
+    border: 4px solid #1d3a2b;
+    border-radius: 24px 24px 16px 16px;
+    background: linear-gradient(#3c7356, var(--green));
+    box-shadow: inset 0 -6px 0 rgb(0 0 0 / 20%), 0 22px 44px -10px rgb(20 40 30 / 60%);
+    rotate: -2deg;
+    animation: slot-pop 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+/* Fronton à ampoules qui clignotent */
+.slot-marquee {
+    margin: 0;
+    padding: 9px 8px;
+    border-radius: 12px;
+    background:
+        radial-gradient(circle, #fffbe6 2.2px, transparent 2.8px) 0 2px / 14px 100% repeat-x,
+        radial-gradient(circle, #fffbe6 2.2px, transparent 2.8px) 7px calc(100% - 2px) / 14px 100% repeat-x,
+        var(--yellow);
+    background-size: 14px 6px, 14px 6px, auto;
+    color: var(--ink);
+    font-size: clamp(1.05rem, 5vw, 1.35rem);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-transform: uppercase;
+    animation: slot-bulbs 0.5s steps(2) infinite;
+}
+
+.slot-reels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 8px;
+    border-radius: 12px;
+    background: #1d3a2b;
+}
+
+.slot-window {
+    height: 72px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: linear-gradient(#d9d2c0, #fffdf7 25%, #fffdf7 75%, #d9d2c0);
+}
+
+.slot-strip {
+    display: grid;
+    justify-items: center;
+}
+
+.slot-strip.is-spinning {
+    filter: blur(1.5px);
+}
+
+.slot-symbol {
+    width: 52px;
+    height: 72px;
+    padding: 10px 0;
+    object-fit: contain;
+}
+
+.slot.is-jackpot .slot-window {
+    animation: slot-win 0.45s ease-in-out 3 alternate;
+}
+
+/* Le levier : on le tire au lancement */
+.slot-lever {
+    position: absolute;
+    top: 96px;
+    right: -22px;
+    width: 8px;
+    height: 64px;
+    border-radius: 4px;
+    background: #8b9a92;
+    transform-origin: 50% 100%;
+    animation: slot-lever 0.55s ease-in-out 0.1s both;
+}
+
+.slot-lever::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: -7px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ff8a73, #c8202a);
+}
+
+.slot-banner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    max-width: calc(100vw - 32px);
+    padding: 12px 22px 14px;
+    border: 3px solid var(--green);
+    border-radius: 14px;
+    background: #fffdf7;
+    color: var(--ink);
+    text-align: center;
+    box-shadow: 0 18px 40px rgb(20 40 30 / 35%);
+    rotate: 2deg;
+    animation: slot-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.slot-banner strong {
+    font-size: clamp(1.4rem, 6vw, 2.3rem);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.slot-yes .slot-banner strong {
+    color: #c8202a;
+    font-size: clamp(2rem, 10vw, 3.4rem);
+    letter-spacing: 0.04em;
+}
+
+.slot-banner span {
+    font: italic var(--fs-md) / 1.35 Georgia, serif;
+}
+
+.slot-drop {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    height: auto;
+    filter: drop-shadow(0 6px 5px rgb(0 0 0 / 25%));
+}
+
+@keyframes slot-spin {
+    to { rotate: 1turn; }
+}
+
+@keyframes slot-ticker {
+    to { translate: -50% 0; }
+}
+
+@keyframes slot-fade {
+    from { opacity: 0; }
+}
+
+@keyframes slot-pop {
+    from { opacity: 0; scale: 0.8; }
+}
+
+@keyframes slot-bulbs {
+    to { background-position: 7px 2px, 0 calc(100% - 2px), 0 0; }
+}
+
+@keyframes slot-lever {
+    45% { transform: scaleY(-0.6); }
+}
+
+@keyframes slot-win {
+    to { background: linear-gradient(#f6c94a, #fff6c9 25%, #fff6c9 75%, #f6c94a); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slot,
+    .slot-machine,
+    .slot-marquee,
+    .slot-lever,
+    .slot-banner,
+    .slot.is-jackpot .slot-window,
+    .slot-rays,
+    .slot-ticker span {
+        animation: none;
+    }
+}
+
+/* Olivier, montagnard roots : rando en lacets jusqu'au sommet, panneau jaune de sentier, refuge = bar. */
+.rando {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: max(8vh, 24px) 16px 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.7s;
+}
+
+.rando.is-leaving {
+    opacity: 0;
+}
+
+.rando-sky,
+.rando-night {
+    position: absolute;
+    inset: 0;
+}
+
+.rando-sky {
+    background: linear-gradient(#a9dcf3, #e4f3f7 55%, #fde4c4);
+    animation: rando-fade 0.5s ease-out both;
+}
+
+.rando-night {
+    background:
+        radial-gradient(1.5px 1.5px at 12% 18%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 28% 8%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 44% 22%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 63% 12%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 78% 26%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 88% 9%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 6% 40%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 93% 44%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 20% 30%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 36% 14%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 52% 6%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 70% 34%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 84% 18%, #fff 99%, transparent),
+        radial-gradient(2.5px 2.5px at 58% 28%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 16% 52%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 96% 60%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 3% 66%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 40% 46%, #fff 99%, transparent),
+        linear-gradient(#0e1b30, #24385a 70%, #3b4f6e);
+    opacity: 0;
+    transition: opacity 1.4s;
+}
+
+.rando.is-night .rando-night {
+    opacity: 1;
+}
+
+.rando-sun {
+    position: absolute;
+    top: 7%;
+    left: 10%;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffe680 0 45%, rgb(255 214 90 / 40%) 46% 62%, transparent 63%);
+    animation: rando-rise 1.2s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    transition: opacity 1s, scale 0.6s;
+}
+
+.rando.is-night .rando-sun {
+    opacity: 0;
+}
+
+.rando.is-summit .rando-sun {
+    scale: 1.5;
+}
+
+.rando-scene {
+    position: relative;
+    z-index: 1;
+    width: min(94vw, 480px);
+    margin-bottom: 96px; /* place pour le panneau planté au premier plan */
+    aspect-ratio: 400 / 280;
+}
+
+.rando-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    transition: filter 1.4s;
+}
+
+.rando.is-night .rando-art,
+.rando.is-night .rando-tree {
+    filter: brightness(0.6) saturate(0.8);
+}
+
+.rando-range {
+    animation: rando-range 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+.rando-range-back {
+    animation-delay: 0.15s;
+}
+
+.rando-range-main {
+    animation-delay: 0.3s;
+}
+
+.rando-range-front {
+    animation-delay: 0.45s;
+}
+
+.rando-trail {
+    animation: rando-fade 0.5s ease-out 0.9s both;
+}
+
+.rando-tree {
+    position: absolute;
+    height: auto;
+    translate: -50% -100%;
+    animation: rando-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 0.7s both;
+}
+
+.rando-hiker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    width: 12%;
+    height: auto;
+    filter: drop-shadow(0 3px 3px rgb(0 0 0 / 30%));
+    transition: opacity 0.4s;
+    animation: rando-fade 0.3s ease-out 0.9s both;
+}
+
+/* Petit pas de marche : le marcheur se dandine pendant qu'il avance */
+.rando-hiker.is-walking {
+    animation: rando-fade 0.3s ease-out 0.9s both, rando-step 0.32s ease-in-out infinite alternate;
+}
+
+.rando-hiker.is-in-tent {
+    opacity: 0;
+}
+
+.rando-tent {
+    position: absolute;
+    left: 48%;
+    top: 97%;
+    z-index: 1;
+    width: 15%;
+    height: auto;
+    translate: -50% -100%;
+    animation: rando-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) 1.3s both;
+}
+
+.rando-flag {
+    position: absolute;
+    z-index: 3;
+    width: 12%;
+    height: auto;
+    translate: -30% -96%;
+    filter: drop-shadow(0 4px 4px rgb(0 0 0 / 30%));
+    animation: rando-plant 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+/* L'altimètre */
+.rando-alti {
+    position: absolute;
+    top: 3%;
+    right: 2%;
+    display: grid;
+    margin: 0;
+    padding: 5px 11px 6px;
+    border-radius: 12px;
+    background: rgb(23 33 28 / 88%);
+    color: #f3f1ea;
+    text-align: right;
+    animation: rando-fade 0.4s ease-out 0.8s both;
+}
+
+.rando-alti small {
+    color: #a9c3b4;
+    font-size: var(--fs-label);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.rando-alti b {
+    font-size: var(--fs-md);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Le panneau jaune des sentiers, planté sur son poteau */
+.rando-sign {
+    position: absolute;
+    top: 96%;
+    left: 0;
+    z-index: 4;
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+    padding-left: 14px;
+    rotate: -3deg;
+    transform-origin: 14px 100%;
+    animation: rando-sign 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) 0.6s both;
+}
+
+.rando-sign::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    bottom: -38px;
+    left: 26px;
+    z-index: -1;
+    width: 8px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #8a5a32, #6b4224);
+}
+
+.rando-board {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin: 0;
+    padding: 4px 22px 4px 10px;
+    background: #f6d24a;
+    color: var(--ink);
+    box-shadow: 0 2px 0 #c9a425;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+}
+
+.rando-board-left {
+    padding: 4px 10px 4px 22px;
+    clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%);
+}
+
+.rando-board-none {
+    padding-right: 10px;
+    border-radius: 3px;
+    clip-path: none;
+}
+
+.rando-board b {
+    font-size: var(--fs-label);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.rando-board span {
+    font: italic var(--fs-xs) Georgia, serif;
+}
+
+.rando-board.is-main {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.rando-board.is-main b {
+    font-size: var(--fs-xs);
+}
+
+/* Le brouillard du « peut-être » */
+.rando-fog {
+    position: absolute;
+    z-index: 3;
+    width: 75%;
+    height: 32%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 255 255 / 95%), rgb(255 255 255 / 0%));
+    opacity: 0;
+    transition: opacity 1.2s;
+}
+
+.rando-fog:nth-of-type(1) {
+    top: 18%;
+    left: -10%;
+}
+
+.rando-fog:nth-of-type(2) {
+    top: 34%;
+    left: 30%;
+}
+
+.rando-fog:nth-of-type(3) {
+    top: 52%;
+    left: 5%;
+}
+
+.rando.is-foggy .rando-fog {
+    opacity: 1;
+    animation: rando-drift 4s ease-in-out infinite alternate;
+}
+
+.rando.is-foggy .rando-fog:nth-of-type(2) {
+    animation-direction: alternate-reverse;
+}
+
+.rando-banner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    max-width: calc(100vw - 32px);
+    padding: 12px 22px 14px;
+    border: 3px solid var(--green);
+    border-radius: 14px;
+    background: #fffdf7;
+    color: var(--ink);
+    text-align: center;
+    box-shadow: 0 18px 40px rgb(20 40 30 / 35%);
+    rotate: 1.5deg;
+    animation: rando-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.rando-banner strong {
+    font-size: clamp(1.4rem, 6vw, 2.3rem);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.rando-banner span {
+    font: italic var(--fs-md) / 1.35 Georgia, serif;
+}
+
+@keyframes rando-fade {
+    from { opacity: 0; }
+}
+
+@keyframes rando-rise {
+    from { opacity: 0; translate: 0 60px; }
+}
+
+@keyframes rando-range {
+    from { opacity: 0; translate: 0 70px; }
+}
+
+@keyframes rando-pop {
+    from { opacity: 0; scale: 0.5; }
+}
+
+@keyframes rando-sign {
+    from { opacity: 0; rotate: -25deg; }
+}
+
+@keyframes rando-plant {
+    from { opacity: 0; translate: -30% -260%; }
+    60% { opacity: 1; }
+}
+
+@keyframes rando-step {
+    from { rotate: -5deg; translate: 0 0; }
+    to { rotate: 5deg; translate: 0 -3px; }
+}
+
+@keyframes rando-drift {
+    to { translate: 18% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rando-sky,
+    .rando-sun,
+    .rando-range,
+    .rando-trail,
+    .rando-tree,
+    .rando-hiker,
+    .rando-tent,
+    .rando-flag,
+    .rando-alti,
+    .rando-sign,
+    .rando.is-foggy .rando-fog,
+    .rando-banner {
+        animation: none;
+    }
+}
