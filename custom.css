@@ -267,7 +267,7 @@ header {
     font-size: 112px;
     filter: drop-shadow(0 12px 0 #24372e15);
     transform: rotate(-10deg);
-    margin-top: -25px;
+    margin-top: 21px; /* entre la bulle et le tampon, un peu au-dessus du centre */
 }
 
 .poster .stamp {
@@ -1731,7 +1731,11 @@ header {
     }
 
     .bubble {
-        top: 17px;
+        top: 45px;
+        max-width: 48%;
+        text-align: center;
+        text-wrap: balance;
+        transform: rotate(6deg);
     }
 
     h1 {
@@ -1973,7 +1977,15 @@ header {
 /* Vie de l'app : direct, compte à rebours et micro-interactions */
 
 /* Les chopes trinquent toutes les quelques secondes, et quand quelqu'un dit « Je viens ». */
-.beers img {
+/* Les chopes et la couronne trinquent ensemble : l'animation est sur leur conteneur commun. */
+.beers-art > .emoji {
+    display: block;
+}
+
+.beers-art {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
     transform-origin: 50% 80%;
     animation: beers-clink 6s ease-in-out infinite;
 }
@@ -2165,7 +2177,7 @@ header {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .beers img,
+    .beers-art,
     .beers.is-cheering,
     .bubble.is-popping,
     .count.is-bumped,
@@ -2255,12 +2267,19 @@ header {
     }
 }
 
-/* Easter egg : tournée générale (clics rapides sur les chopes de l'affiche) */
-.beers {
+/* Easter egg : tournée générale (clics rapides n'importe où sur l'affiche) */
+.poster {
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+}
+
+/* Les cercles décoratifs ne doivent pas intercepter les taps. */
+.poster:before,
+.poster:after {
+    pointer-events: none;
 }
 
 .beer-rain {
@@ -2370,6 +2389,243 @@ header {
     .shifumi-hand.is-shaking,
     .shifumi-hand.is-winner,
     .crew-card .match-team.is-shifumi-winner {
+        animation: none;
+    }
+}
+
+/* Téléphone : affiche étroite, les chopes passent à gauche pour laisser la droite à la bulle. */
+@media (max-width: 520px) {
+    .beers {
+        justify-self: start;
+        margin-left: 14%;
+    }
+}
+
+/* Easter egg : palier 50 de la tournée générale, « Pilier de comptoir » */
+.beers {
+    position: relative;
+    display: grid;
+}
+
+.legend {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 45%, rgba(36, 55, 46, 0.82), rgba(12, 22, 17, 0.95));
+    animation: legend-fade 0.4s ease-out;
+    transition: opacity 0.4s;
+}
+
+.legend.is-leaving {
+    opacity: 0;
+}
+
+.legend-rays {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 160vmax;
+    height: 160vmax;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(from 0deg, #f6c94a38 0deg 7deg, transparent 7deg 18deg);
+    -webkit-mask: radial-gradient(circle, #000 0 18%, transparent 55%);
+    mask: radial-gradient(circle, #000 0 18%, transparent 55%);
+    animation: legend-spin 16s linear infinite;
+}
+
+.legend-mug {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.legend-content {
+    position: relative;
+    z-index: 2;
+    padding: 0 24px;
+    color: var(--paper);
+    text-align: center;
+}
+
+.legend-trophy {
+    display: block;
+    margin: 0 auto;
+    width: min(42vw, 180px);
+    height: auto;
+    filter: drop-shadow(0 0 32px #f6c94abb);
+    animation: legend-trophy 0.9s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.legend-title {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 6px 18px;
+    border: 3px solid var(--yellow);
+    border-radius: 10px;
+    color: var(--yellow);
+    font-size: clamp(1.7rem, 7vw, 3.2rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    rotate: -4deg;
+    animation: legend-stamp 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) 0.55s both;
+}
+
+.legend-sub {
+    margin-top: 16px;
+    font: italic var(--fs-md) / 1.4 Georgia, serif;
+    animation: legend-rise 0.5s ease-out 1s both;
+}
+
+.legend-hint {
+    margin-top: 6px;
+    color: #c1cbbf;
+    font-size: var(--fs-xs);
+    animation: legend-rise 0.5s ease-out 1.4s both;
+}
+
+/* Bouton de fermeture : invisible et inactif pendant 2,5 s pour éviter les fermetures accidentelles. */
+.legend-close {
+    margin-top: 22px;
+    padding: 9px 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-weight: 800;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.35s, transform 0.35s, visibility 0s 0.35s;
+}
+
+.legend-close.is-ready {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.35s, transform 0.35s;
+}
+
+@keyframes legend-fade {
+    from { opacity: 0; }
+}
+
+@keyframes legend-spin {
+    to { rotate: 360deg; }
+}
+
+@keyframes legend-trophy {
+    0% { transform: scale(0) rotate(-25deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes legend-stamp {
+    0% { opacity: 0; transform: scale(2.4); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes legend-rise {
+    from { opacity: 0; transform: translateY(10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .legend,
+    .legend-rays,
+    .legend-trophy,
+    .legend-title,
+    .legend-sub,
+    .legend-hint {
+        animation: none;
+    }
+}
+
+/* Couronne de légende : posée de travers sur le coin haut droit de l'affiche. */
+.poster-wrap {
+    position: relative;
+    max-width: 420px;
+}
+
+/* Posée sur l'arrondi du coin haut droit (point à 45° de la courbe), penchée comme la pente.
+   transform-origin en bas : la base reste au contact de l'affiche quand elle penche. */
+.poster-crown {
+    display: none;
+    position: absolute;
+    z-index: 2;
+    top: -50px;
+    right: -2px;
+    width: 96px;
+    height: 96px;
+    rotate: 38deg;
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 8px 6px rgba(20, 40, 30, 0.25));
+    pointer-events: none;
+}
+
+.poster-wrap.is-legend .poster-crown {
+    display: block;
+}
+
+/* Petite couronne sur la chope de derrière, plus discrète que celle du coin. */
+.legend-crown {
+    display: none;
+    position: absolute;
+    left: 63%;
+    top: -0.12em;
+    width: 0.3em;
+    height: 0.3em;
+    translate: -50% 0;
+    rotate: 18deg;
+    filter: drop-shadow(0 3px 2px rgba(20, 40, 30, 0.25));
+    pointer-events: none;
+}
+
+.poster-wrap.is-legend .legend-crown {
+    display: block;
+}
+
+.poster-wrap.is-crowning .legend-crown {
+    visibility: hidden;
+}
+
+.legend-crown.is-new {
+    animation: pop-bump 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+/* L'affiche encaisse le choc (translate : ne touche pas à son inclinaison). */
+.poster.is-thud {
+    animation: poster-thud 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes poster-thud {
+    0% { translate: 0 0; }
+    25% { translate: 0 8px; }
+    55% { translate: 0 -3px; }
+    100% { translate: 0 0; }
+}
+
+@media (max-width: 740px) {
+    .poster-wrap {
+        max-width: none;
+    }
+
+    /* L'affiche touche presque le bord de l'écran : la couronne reste dans la page. */
+    .poster-crown {
+        top: -40px;
+        right: 6px;
+        width: 66px;
+        height: 66px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .poster.is-thud,
+    .legend-crown.is-new {
         animation: none;
     }
 }

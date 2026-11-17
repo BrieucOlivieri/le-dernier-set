@@ -126,7 +126,7 @@
     };
     // Phrase de la bulle de l'affiche selon le nombre de partants (seuil minimum, texte).
     const POSTER_LINES = [
-        [7, '« Il va falloir des chopes. »'],
+        [7, '« Ça déborde ! »'],
         [4, '« Ça se remplit ! »'],
         [2, '« Ça trinque déjà. »'],
         [1, '« Un brave. Qui suit ? »'],
@@ -880,7 +880,7 @@
         $('#refresh-votes').addEventListener('click', refreshCurrentWeek);
         $('#remove').addEventListener('click', removeResponse);
         $('#rally').addEventListener('click', hitShuttle);
-        $('.beers').addEventListener('click', clinkBeers);
+        $('.poster').addEventListener('click', clinkBeers);
         $('#shifumi').addEventListener('click', playShifumi);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshCurrentWeek();
@@ -1036,15 +1036,21 @@
         showLiveNote('Échange de ' + hits + ' coups. ' + verdict, 'badminton', 'rally');
     }
 
-    // 10. Easter egg : tournée générale. Cliquer vite sur les chopes de l'affiche
+    // 10. Easter egg : tournée générale. Cliquer vite sur l'affiche (toute la zone jaune)
     // les fait trinquer ; à 5 clics, tournée générale et pluie de chopes.
-    const ROUND_GAP_MS = 1200; // sans clic pendant ce délai, on repart de zéro
+    const ROUND_GAP_MS = 1500; // sans clic pendant ce délai, on repart de zéro
+    // Des récompenses de plus en plus absurdes pour qui insiste (courtes : 2 lignes max sur téléphone).
     const ROUND_LINES = {
         5: '« Tournée générale ! »',
-        10: '« C’est toi qui paies, du coup. »',
-        15: '« Le barman te regarde bizarrement. »',
-        20: '« Bon. On te coupe. »',
+        10: '« C’est la maison qui offre ! »',
+        15: '« Tu gagnes… un sous-bock. »',
+        20: '« Le barman t’adopte. »',
+        25: '« Ta photo au mur du bar ! »',
+        30: '« Bière gratuite à vie ! (non) »',
+        40: '« Les chopes ont la gueule de bois. »',
+        50: '« Pilier de comptoir officiel. »',
     };
+    const ROUND_RAINS = new Set([5, 10, 30]); // paliers avec pluie de chopes
     let roundClicks = 0;
     let roundTimer;
 
@@ -1054,10 +1060,132 @@
         const line = ROUND_LINES[roundClicks];
         if (line) {
             shoutInBubble(line);
-            if (roundClicks <= 10) rainBeers();
+            if (ROUND_RAINS.has(roundClicks)) rainBeers();
+            if (roundClicks === LEGEND_AT) showLegend();
         }
         clearTimeout(roundTimer);
         roundTimer = setTimeout(() => (roundClicks = 0), ROUND_GAP_MS);
+    }
+
+    // Palier ultime : scène « Pilier de comptoir » et couronne permanente sur l'affiche.
+    const LEGEND_AT = 50;
+    const LEGEND_KEY = 'le-dernier-set:legend';
+
+    function isLegend() {
+        try {
+            return localStorage.getItem(LEGEND_KEY) === '1';
+        } catch {
+            return false;
+        }
+    }
+
+    function crownPoster(isNew = false) {
+        $('.poster-wrap').classList.add('is-legend');
+        if (!isNew || reduceMotion) return;
+        $('.poster-wrap').classList.add('is-crowning'); // petite couronne cachée jusqu'à l'impact
+        dropCrown();
+    }
+
+    // Grosse couronne qui tombe du haut de l'écran et s'écrase lourdement sur le coin de l'affiche.
+    function dropCrown() {
+        const crown = $('.poster-crown');
+        const fall = crown.getBoundingClientRect().bottom + 60; // part d'au-dessus de l'écran
+        const duration = 1150;
+        const impactAt = 0.6;
+        // translate (et non transform) : appliqué avant la rotation, la chute reste verticale à l'écran.
+        crown.animate(
+            [
+                { translate: `0 ${-fall}px`, scale: '1', easing: 'cubic-bezier(.55, 0, 1, .45)' }, // gravité
+                { translate: '0 0', scale: '1.2 .75', offset: impactAt, easing: 'ease-out' }, // écrasée
+                { translate: '0 -18px', scale: '.94 1.08', offset: 0.75, easing: 'ease-in' }, // rebond
+                { translate: '0 0', scale: '1.06 .94', offset: 0.88, easing: 'ease-out' },
+                { translate: '0 0', scale: '1' },
+            ],
+            { duration, fill: 'backwards' },
+        );
+        setTimeout(crownImpact, duration * impactAt);
+    }
+
+    function crownImpact() {
+        $('.poster-wrap').classList.remove('is-crowning');
+        replayAnimation($('.poster'), 'is-thud');
+        try {
+            navigator.vibrate?.(80); // Android ; ignoré ailleurs
+        } catch {
+            // Vibration non disponible.
+        }
+        replayAnimation($('.legend-crown'), 'is-new'); // la petite couronne apparaît sur la chope
+    }
+
+    function showLegend() {
+        try {
+            localStorage.setItem(LEGEND_KEY, '1');
+        } catch {
+            // Stockage bloqué : la couronne ne restera que jusqu'au rechargement.
+        }
+        const overlay = document.createElement('div');
+        overlay.className = 'legend';
+        overlay.setAttribute('role', 'status');
+        overlay.innerHTML =
+            '<div class="legend-rays" aria-hidden="true"></div>' +
+            '<div class="legend-content">' +
+            '<img class="legend-trophy" src="assets/emoji/trophy.svg" alt="" />' +
+            '<p class="legend-title">Pilier de comptoir</p>' +
+            '<p class="legend-sub">50 tournées. Le comptoir porte ton nom.</p>' +
+            '<p class="legend-hint">Une couronne t’attend sur l’affiche.</p>' +
+            '<button class="legend-close" type="button">Retour au comptoir</button>' +
+            '</div>';
+        document.body.append(overlay);
+        fountainBeers(overlay);
+        let closed = false;
+        const close = () => {
+            if (closed) return;
+            closed = true;
+            document.removeEventListener('keydown', onKey);
+            overlay.classList.add('is-leaving');
+            setTimeout(() => {
+                overlay.remove();
+                crownPoster(true);
+            }, 400);
+        };
+        // On tape vite pour arriver ici : seul le bouton (qui n'apparaît qu'après 2,5 s) ou Échap
+        // ferment la scène, pour ne pas la fermer par accident avec les derniers taps.
+        const closeButton = overlay.querySelector('.legend-close');
+        closeButton.addEventListener('click', close);
+        const onKey = (event) => {
+            if (event.key === 'Escape') close();
+        };
+        document.addEventListener('keydown', onKey);
+        setTimeout(() => {
+            closeButton.classList.add('is-ready');
+            closeButton.focus({ preventScroll: true });
+        }, 2500);
+        setTimeout(close, 6500);
+    }
+
+    // Fontaine : les chopes jaillissent du bas de l'écran, montent puis retombent.
+    function fountainBeers(layer) {
+        if (reduceMotion) return;
+        const total = innerWidth < 600 ? 26 : 44;
+        for (let i = 0; i < total; i++) {
+            const size = 34 + Math.random() * 30;
+            const mug = emoji(i % 3 === 0 ? 'beers' : 'beer');
+            mug.className = 'legend-mug';
+            mug.style.width = mug.style.height = size + 'px';
+            layer.append(mug);
+            const startX = innerWidth * (0.2 + Math.random() * 0.6);
+            const endX = startX + (Math.random() - 0.5) * innerWidth * 0.7;
+            const peakY = innerHeight * (0.05 + Math.random() * 0.4);
+            const spin = (Math.random() - 0.5) * 540;
+            mug.animate(
+                [
+                    { transform: `translate(${startX}px, ${innerHeight + 20}px) rotate(0deg)`, easing: 'cubic-bezier(.2,.7,.4,1)' },
+                    { transform: `translate(${(startX + endX) / 2}px, ${peakY}px) rotate(${spin / 2}deg)`, offset: 0.45, easing: 'cubic-bezier(.6,0,.8,.5)' },
+                    { transform: `translate(${endX}px, ${innerHeight + 80}px) rotate(${spin}deg)` },
+                ],
+                { duration: 2300 + Math.random() * 900, delay: 300 + Math.random() * 2600, fill: 'both' },
+            );
+        }
     }
 
     function rainBeers() {
@@ -1181,6 +1309,7 @@
         render();
         renderCountdown();
         setInterval(renderCountdown, 1000);
+        if (isLegend()) crownPoster();
 
         bindEvents();
         setVoteBusy(true);
