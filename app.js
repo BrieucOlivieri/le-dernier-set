@@ -177,6 +177,8 @@
     let liveStarted = false;
     let lastYesCount = null;
     const freshIds = new Set(); // lignes à faire apparaître en glissant au prochain rendu
+    let shifumiWinner = null; // bar désigné par le dernier shifumi (pour rire)
+    let shifumiPlaying = false;
     let posterPartants = 0;
     let bubbleOverrideUntil = 0;
     let bubbleTimer;
@@ -493,7 +495,17 @@
             $('#' + venue + '-count').textContent = bars[venue];
             $('#' + venue + '-team').classList.toggle('is-leading', venue === leader);
         }
-        if (!total) {
+        // Easter egg shifumi : proposé en cas d'égalité ; son verdict reste affiché tant que l'égalité dure.
+        const isTie = !leader && bars.pavane >= SHIFUMI_MIN_SCORE;
+        if (!isTie) shifumiWinner = null;
+        $('#shifumi').classList.toggle('hidden', !isTie || shifumiPlaying);
+        if (shifumiPlaying) {
+            // Le résultat s'affichera à la fin de la partie.
+        } else if (isTie && shifumiWinner) {
+            $('#venue-result').textContent =
+                'Le shifumi a parlé : ' + VENUES[shifumiWinner] + ' ! (pour rire, le vote continue)';
+            $('#' + shifumiWinner + '-team').classList.add('is-leading');
+        } else if (!total) {
             $('#venue-result').textContent = 'Le choix du bar reste ouvert.';
         } else if (!leader) {
             $('#venue-result').textContent = 'Égalité : à décider ensemble !';
@@ -869,6 +881,7 @@
         $('#remove').addEventListener('click', removeResponse);
         $('#rally').addEventListener('click', hitShuttle);
         $('.beers').addEventListener('click', clinkBeers);
+        $('#shifumi').addEventListener('click', playShifumi);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) refreshCurrentWeek();
         });
@@ -1080,7 +1093,81 @@
         setTimeout(() => layer.remove(), 3800);
     }
 
-    // 11. Démarrage et restauration du formulaire
+    // 11. Easter egg : shifumi pour départager une égalité au match des bars (pour rire).
+    // SHIFUMI_MIN_SCORE : score minimum de chaque bar pour proposer le shifumi.
+    // 0 = aussi à 0-0 (pour tester) ; passer à 1 pour ne le proposer qu'en vraie égalité.
+    const SHIFUMI_MIN_SCORE = 0;
+    const SHIFUMI_MOVES = {
+        fist: { name: 'Pierre', beats: 'victory' },
+        hand: { name: 'Feuille', beats: 'fist' },
+        victory: { name: 'Ciseaux', beats: 'hand' },
+    };
+    const SHIFUMI_BEAT_MS = 450;
+
+    function randomMove() {
+        const moves = Object.keys(SHIFUMI_MOVES);
+        return moves[Math.floor(Math.random() * moves.length)];
+    }
+
+    function playShifumi() {
+        if (shifumiPlaying) return;
+        shifumiPlaying = true;
+        shifumiWinner = null;
+        $('#shifumi').classList.add('hidden');
+        $('#shifumi-arena').classList.remove('hidden');
+        document.querySelectorAll('.match-team').forEach((team) => team.classList.remove('is-leading'));
+        playShifumiRound(1);
+    }
+
+    function playShifumiRound(round) {
+        const hands = [$('#shifumi-pavane'), $('#shifumi-bryans')];
+        const call = $('#shifumi-call');
+        const beat = reduceMotion ? 200 : SHIFUMI_BEAT_MS;
+        hands.forEach((hand) => {
+            hand.classList.remove('is-winner', 'is-loser');
+            replayAnimation(hand, 'is-shaking');
+        });
+        // À chaque secousse, les deux mains montrent le coup annoncé : ✊ puis ✋ puis ✌️.
+        Object.entries(SHIFUMI_MOVES).forEach(([move, { name }], index) =>
+            setTimeout(() => {
+                call.textContent = name + '…';
+                hands.forEach((hand) => (hand.src = 'assets/emoji/' + move + '.svg'));
+            }, index * beat),
+        );
+        $('#venue-result').textContent = round > 1 ? 'Égalité au shifumi, on rejoue !' : 'Shi… fu… mi…';
+        setTimeout(() => {
+            const pavane = randomMove();
+            const bryans = randomMove();
+            hands[0].src = 'assets/emoji/' + pavane + '.svg';
+            hands[1].src = 'assets/emoji/' + bryans + '.svg';
+            call.textContent = SHIFUMI_MOVES[pavane].name + ' contre ' + SHIFUMI_MOVES[bryans].name.toLowerCase();
+            if (pavane === bryans) {
+                // Même coup : on rejoue (5 manches maximum, puis tirage au sort).
+                if (round < 5) {
+                    setTimeout(() => playShifumiRound(round + 1), 1100);
+                    return;
+                }
+                finishShifumi(Math.random() < 0.5 ? 'pavane' : 'bryans');
+                return;
+            }
+            const winner = SHIFUMI_MOVES[pavane].beats === bryans ? 'pavane' : 'bryans';
+            hands[winner === 'pavane' ? 0 : 1].classList.add('is-winner');
+            hands[winner === 'pavane' ? 1 : 0].classList.add('is-loser');
+            finishShifumi(winner);
+        }, beat * 3);
+    }
+
+    function finishShifumi(winner) {
+        shifumiWinner = winner;
+        shifumiPlaying = false;
+        render(); // affiche le verdict et remet le bouton pour une revanche
+        replayAnimation($('#' + winner + '-team'), 'is-shifumi-winner');
+        setTimeout(() => {
+            if (!shifumiPlaying) $('#shifumi-arena').classList.add('hidden');
+        }, 4000);
+    }
+
+    // 12. Démarrage et restauration du formulaire
     function init() {
         renderReasons();
         $('#date').textContent = paris.toLocaleDateString('fr-FR', {

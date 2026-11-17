@@ -2282,3 +2282,94 @@ header {
         display: none;
     }
 }
+
+/* Easter egg : shifumi pour départager une égalité au match des bars */
+.shifumi-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 12px;
+    padding: 6px 14px 6px 10px;
+    border: 1px solid #f6c94a99;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--yellow);
+    font-size: var(--fs-sm);
+    font-weight: 750;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.shifumi-button:hover {
+    background: var(--yellow);
+    color: var(--ink);
+}
+
+.shifumi-button .emoji {
+    width: 1.3em;
+    height: 1.3em;
+    vertical-align: -0.3em;
+}
+
+.shifumi {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.shifumi-hand {
+    width: 52px;
+    height: 52px;
+    justify-self: center;
+    transition: opacity 0.3s, filter 0.3s;
+}
+
+/* La main du Bryan's fait face à celle de La Pavane. */
+.shifumi-hand-bryans {
+    scale: -1 1;
+}
+
+.shifumi-hand.is-shaking {
+    animation: shifumi-shake 0.45s ease-in-out 3;
+}
+
+/* Animé avec transform (et non scale) pour ne pas annuler le retournement de la main du Bryan's. */
+.shifumi-hand.is-winner {
+    filter: drop-shadow(0 0 10px #f6c94acc);
+    animation: shifumi-win 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.shifumi-hand.is-loser {
+    opacity: 0.4;
+}
+
+.shifumi-call {
+    min-width: 7.5em;
+    color: var(--yellow);
+    font: italic var(--fs-sm) / 1.3 Georgia, serif;
+    text-align: center;
+}
+
+.crew-card .match-team.is-shifumi-winner {
+    animation: pop-bump 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes shifumi-win {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shifumi-shake {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-14px) rotate(-8deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shifumi-hand.is-shaking,
+    .shifumi-hand.is-winner,
+    .crew-card .match-team.is-shifumi-winner {
+        animation: none;
+    }
+}
