@@ -1295,8 +1295,8 @@
 
     // 11. Easter egg : shifumi pour départager une égalité au match des bars (pour rire).
     // SHIFUMI_MIN_SCORE : score minimum de chaque bar pour proposer le shifumi.
-    // 0 = aussi à 0-0 (pour tester) ; passer à 1 pour ne le proposer qu'en vraie égalité.
-    const SHIFUMI_MIN_SCORE = 0;
+    // 1 = seulement en vraie égalité (1-1, 2-2…) ; 0 le proposerait aussi à 0-0 (pratique pour tester).
+    const SHIFUMI_MIN_SCORE = 1;
     const SHIFUMI_MOVES = {
         fist: { name: 'Pierre', beats: 'victory' },
         hand: { name: 'Feuille', beats: 'fist' },
