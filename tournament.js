@@ -520,33 +520,46 @@
         advance(event.key.toLowerCase(), KONAMI_KEYS);
     });
 
+    // Au doigt, tous les gestes comptent, même commencés sur le champ prénom : en faisant défiler
+    // la page, le doigt se pose souvent dessus. Si le navigateur reprend la main pour défiler
+    // (touchcancel au lieu de touchend), on calcule le geste depuis la dernière position connue.
     let touchStart = null;
+    let touchLast = null;
+    const point = (touch) => ({ x: touch.clientX, y: touch.clientY });
     document.addEventListener(
         'touchstart',
         (event) => {
-            const touch = event.changedTouches[0];
-            touchStart = { x: touch.clientX, y: touch.clientY };
+            if (event.touches.length > 1) {
+                touchStart = null; // zoom à deux doigts : pas un geste du code
+                return;
+            }
+            touchStart = touchLast = point(event.changedTouches[0]);
         },
         { passive: true },
     );
     document.addEventListener(
-        'touchend',
+        'touchmove',
         (event) => {
-            if (!touchStart || event.target.closest?.('input, textarea')) return;
-            const touch = event.changedTouches[0];
-            const dx = touch.clientX - touchStart.x;
-            const dy = touch.clientY - touchStart.y;
-            touchStart = null;
-            let gesture = 'tap';
-            if (Math.max(Math.abs(dx), Math.abs(dy)) > 40) {
-                gesture = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
-            } else if (Math.max(Math.abs(dx), Math.abs(dy)) > 12) {
-                return; // geste trop court : ni balayage, ni tap
-            }
-            advance(gesture, KONAMI_SWIPES);
+            if (touchStart) touchLast = point(event.changedTouches[0]);
         },
         { passive: true },
     );
+    const finishGesture = (end) => {
+        if (!touchStart) return;
+        const dx = end.x - touchStart.x;
+        const dy = end.y - touchStart.y;
+        touchStart = null;
+        const distance = Math.max(Math.abs(dx), Math.abs(dy));
+        let gesture = 'tap';
+        if (distance > 40) {
+            gesture = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+        } else if (distance > 12) {
+            return; // geste trop court : ni balayage, ni tap
+        }
+        advance(gesture, KONAMI_SWIPES);
+    };
+    document.addEventListener('touchend', (event) => finishGesture(point(event.changedTouches[0])), { passive: true });
+    document.addEventListener('touchcancel', () => touchLast && finishGesture(touchLast), { passive: true });
 
     // Pour tester depuis la console : leDernierSetTournoi()
     window.leDernierSetTournoi = startTournament;
