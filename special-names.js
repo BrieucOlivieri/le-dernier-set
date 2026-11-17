@@ -499,6 +499,7 @@
     }
 
     // Olivier, montagnard roots : rando en lacets jusqu'au sommet, panneau jaune de sentier, refuge = bar.
+    // Comme le volcan de Naya, la montagne se dresse en bas de l'écran et le ciel laisse deviner la page.
     const RANDO_TEXTS = {
         yes: {
             title: 'Sommet atteint !',
@@ -527,30 +528,44 @@
         },
     };
 
-    // Le sentier en lacets (unités du dessin 400 × 280), de la vallée au sommet.
-    const RANDO_TRAIL = [[150, 268], [236, 236], [156, 200], [240, 166], [192, 132], [234, 102], [215, 58]];
+    // Le dessin fait 400 × 350 unités ; les reliefs débordent sur les côtés pour couvrir tout l'écran.
+    const RANDO_W = 400;
+    const RANDO_H = 350;
+    // Le sentier en lacets, de la prairie au sommet.
+    const RANDO_TRAIL = [[204, 268], [236, 234], [168, 204], [246, 176], [196, 140], [238, 110], [215, 56]];
     const RANDO_LANDSCAPE = `
-        <svg class="rando-art" viewBox="0 0 400 280" aria-hidden="true">
+        <svg class="rando-art" viewBox="0 0 ${RANDO_W} ${RANDO_H}" aria-hidden="true">
             <defs>
-                <linearGradient id="rando-rock" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#8fa79a"/><stop offset="1" stop-color="#4f6f5d"/>
+                <linearGradient id="rando-lit" x1="0" y1="50" x2="0" y2="250" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#9db8a6"/><stop offset="1" stop-color="#6f9580"/>
                 </linearGradient>
-                <linearGradient id="rando-ground" x1="0" y1="220" x2="0" y2="720" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" stop-color="#4a8a62"/><stop offset="0.35" stop-color="#315d46"/><stop offset="1" stop-color="#1d3a2b"/>
+                <linearGradient id="rando-shade" x1="0" y1="50" x2="0" y2="250" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#6d8d7b"/><stop offset="1" stop-color="#4b6d5a"/>
+                </linearGradient>
+                <linearGradient id="rando-ground" x1="0" y1="230" x2="0" y2="350" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#5c9a6c"/><stop offset="0.5" stop-color="#3d7653"/><stop offset="1" stop-color="#2a5640"/>
                 </linearGradient>
             </defs>
-            <g class="rando-range rando-range-back">
-                <path d="M-1000 175 L-760 120 L-520 178 L-300 112 L-110 176 L0 205 L55 130 L105 172 L165 98 L235 160 L300 105 L355 150 L400 118 L520 168 L690 104 L900 172 L1150 118 L1400 170 V1200 H-1000Z" fill="#a9c3d6"/>
-                <path d="M165 98 L180 116 L171 113 L164 121 L155 111Z M300 105 L314 120 L305 118 L298 125 L290 117Z" fill="#fff"/>
+            <g class="rando-range rando-range-far">
+                <path d="M-1000 215 L-780 150 L-560 205 L-330 140 L-120 198 L-20 160 L50 192 L95 146 L140 186 L300 182 L345 128 L395 176 L470 138 L620 205 L820 145 L1050 200 L1400 152 V${RANDO_H} H-1000Z" fill="#c9dbe6"/>
+            </g>
+            <g class="rando-range rando-range-mid">
+                <path d="M-1000 245 L-700 188 L-420 238 L-200 178 L-40 232 L30 182 L75 208 L118 128 L160 196 L250 205 L300 112 L352 194 L420 162 L560 232 L760 176 L1000 238 L1400 190 V${RANDO_H} H-1000Z" fill="#a9c3d3"/>
+                <path d="M118 128 L160 196 L138 200 L128 160Z M300 112 L352 194 L330 198 L310 150Z M-700 188 L-420 238 L-520 240 L-640 205Z M760 176 L1000 238 L900 240 L800 200Z" fill="#91aec1"/>
+                <path d="M118 128 L130 147 L124 144 L118 151 L112 145 L105 148Z M300 112 L313 132 L306 128 L300 136 L293 129 L287 133Z" fill="#fff"/>
             </g>
             <g class="rando-range rando-range-main">
-                <path d="M15 280 L150 120 L175 136 L215 50 L250 95 L270 86 L385 280Z" fill="url(#rando-rock)"/>
-                <path d="M215 50 L234 78 L224 73 L215 84 L206 74 L196 80Z" fill="#fff"/>
+                <path d="M30 250 L120 170 L150 152 L215 50 L262 108 L282 98 L380 250Z" fill="url(#rando-lit)"/>
+                <path d="M215 50 L262 108 L282 98 L380 250 L236 250 L250 168 L224 104Z" fill="url(#rando-shade)"/>
+                <path d="M150 152 L172 170 L160 176Z M282 98 L300 140 L288 132Z" fill="#5f8270" opacity="0.6"/>
+                <path d="M215 50 L190 92 L201 86 L208 96 L216 87 L224 97 L233 88 L243 95 L232 72Z" fill="#fff"/>
+                <path d="M215 50 L232 72 L243 95 L233 88 L224 97 L221 70Z" fill="#dbe7ee"/>
                 <polyline class="rando-trail" points="${RANDO_TRAIL.map((p) => p.join(',')).join(' ')}"
-                    fill="none" stroke="#f3ead6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round" stroke-linejoin="round"/>
+                    fill="none" stroke="#f6efdc" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round" stroke-linejoin="round"/>
             </g>
             <g class="rando-range rando-range-front">
-                <path d="M-1000 1200 V236 Q-500 196 0 236 Q60 206 125 230 T250 224 T400 232 Q700 200 1400 236 V1200Z" fill="url(#rando-ground)"/>
+                <path d="M-1000 ${RANDO_H} V250 Q-500 212 0 250 Q70 226 140 246 T290 240 T400 248 Q700 216 1400 250 V${RANDO_H}Z" fill="url(#rando-ground)"/>
+                <path d="M-1000 ${RANDO_H} V300 Q-400 280 60 304 Q200 290 330 306 T1400 296 V${RANDO_H}Z" fill="#2f5e45" opacity="0.6"/>
             </g>
         </svg>`;
 
@@ -560,13 +575,12 @@
         const layer = document.createElement('div');
         layer.className = 'rando rando-' + vote;
         layer.setAttribute('role', 'status');
-        layer.innerHTML = '<span class="rando-sky" aria-hidden="true"></span><span class="rando-night" aria-hidden="true"></span>'
-            + '<span class="rando-sun" aria-hidden="true"></span>';
+        layer.innerHTML = '<span class="rando-sky" aria-hidden="true"></span><span class="rando-night" aria-hidden="true"></span>';
 
         const scene = document.createElement('div');
         scene.className = 'rando-scene';
-        scene.innerHTML = RANDO_LANDSCAPE;
-        for (const [x, y, size] of [[8, 80, 12], [64, 90, 9], [78, 84, 11], [88, 80, 14], [95, 87, 9]]) {
+        scene.innerHTML = '<span class="rando-sun" aria-hidden="true"></span>' + RANDO_LANDSCAPE;
+        for (const [x, y, size] of [[4, 73, 7], [66, 75, 8], [77, 79, 11], [87, 73, 9], [95, 80, 8]]) {
             const tree = emoji('tree', 'rando-tree');
             tree.style.left = x + '%';
             tree.style.top = y + '%';
@@ -583,7 +597,7 @@
         altimeter.append(meters);
         scene.append(altimeter);
 
-        // Le panneau jaune des sentiers
+        // Le panneau jaune des sentiers, planté dans la prairie
         const sign = document.createElement('div');
         sign.className = 'rando-sign';
         for (const [direction, place, time, main] of text.signs) {
@@ -603,9 +617,9 @@
         layer.append(scene);
         document.body.append(layer);
 
-        // Olivier suit le sentier : on calcule son trajet à l'échelle de la scène.
-        const scale = scene.clientWidth / 400;
-        const size = scene.clientWidth * 0.12; // largeur CSS du marcheur (emoji carré)
+        // Olivier suit le sentier : son trajet est calculé à l'échelle de la scène.
+        const scale = scene.clientWidth / RANDO_W;
+        const size = scene.clientWidth * 0.11; // largeur CSS du marcheur (emoji carré)
         const points = RANDO_TRAIL.map(([x, y]) => [x * scale, y * scale]);
         const place = ([x, y], flip) => `translate(${x - size / 2}px, ${y - size * 0.94}px) scaleX(${flip})`;
         const lengths = points.slice(1).map((p, i) => Math.hypot(p[0] - points[i][0], p[1] - points[i][1]));
@@ -620,7 +634,7 @@
             walked += length;
             if (from >= text.stop) return;
             const end = Math.min(walked / total, text.stop);
-            const k = (end * total - from * total) / length; // part du lacet parcourue
+            const k = (end - from) * total / length; // part du lacet parcourue
             const stopAt = [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
             frames.push({ offset: from / text.stop, transform: place(a, flip) });
             frames.push({ offset: end / text.stop, transform: place(stopAt, flip) });
@@ -656,22 +670,26 @@
         }
         if (vote === 'no') {
             at(900, () => layer.classList.add('is-night'));
-            const tent = emoji('tent', 'rando-tent');
-            scene.append(tent);
+            scene.append(emoji('tent', 'rando-tent'));
             at(arrival, () => hiker.classList.add('is-in-tent'));
         }
-
-        at(arrival + 150, () => {
-            if (vote === 'yes') {
+        if (vote === 'yes') {
+            at(arrival, () => {
                 // La chope est plantée dans la pente, juste à droite du sommet, et Olivier se tourne vers elle.
                 const beer = emoji('beer', 'rando-flag');
-                beer.style.left = (238 / 4) + '%';
-                beer.style.top = (80 / 2.8) + '%';
+                beer.style.left = (240 / RANDO_W) * 100 + '%';
+                beer.style.top = (84 / RANDO_H) * 100 + '%';
                 scene.append(beer);
                 hiker.getAnimations().forEach((animation) => animation.cancel());
                 hiker.style.transform = place(points[points.length - 1], -1);
                 layer.classList.add('is-summit');
-            }
+                if (!reduceMotion) summitParty(layer, scene, points[points.length - 1], hiker);
+            });
+        }
+
+        // Au sommet, on laisse d'abord la fête se voir avant la bannière.
+        const bannerAt = arrival + (vote === 'yes' ? 1300 : 150);
+        at(bannerAt, () => {
             const banner = document.createElement('div');
             banner.className = 'rando-banner';
             const title = document.createElement('strong');
@@ -685,7 +703,91 @@
         setTimeout(() => {
             layer.classList.add('is-leaving');
             setTimeout(() => layer.remove(), 700);
-        }, (reduceMotion ? 0 : arrival) + 4300);
+        }, (reduceMotion ? 0 : bannerAt) + 4200);
+    }
+
+    // La fête au sommet, sur toute la page : rayons de lumière, gerbe de bières et d'étoiles,
+    // saut de joie, écho de la montagne, puis pluie d'étoiles.
+    const SUMMIT_BURST = ['beer', 'star', 'party', 'beers', 'star', 'beer', 'party', 'star'];
+    const SUMMIT_ECHO = [
+        // [texte, x (vw), y (vh), taille, délai]
+        ['SANTÉ !', 50, 36, 'clamp(1.8rem, 8vw, 3.2rem)', 0],
+        ['…anté !', 20, 47, 'clamp(1.3rem, 5.5vw, 2.2rem)', 600],
+        ['…té !', 80, 41, 'clamp(1.05rem, 4.5vw, 1.7rem)', 1150],
+        ['…é…', 30, 28, 'clamp(0.9rem, 3.5vw, 1.3rem)', 1650],
+    ];
+
+    function summitParty(layer, scene, [x, y], hiker) {
+        const box = scene.getBoundingClientRect();
+        const sx = box.left + x;
+        const sy = box.top + y;
+
+        // Les rayons partent du pic et balaient tout l'écran, derrière les montagnes.
+        const glory = document.createElement('span');
+        glory.className = 'rando-glory';
+        glory.setAttribute('aria-hidden', 'true');
+        glory.style.left = sx + 'px';
+        glory.style.top = sy + 'px';
+        scene.before(glory);
+
+        hiker.animate(
+            [{ translate: '0 0' }, { translate: '0 -18px', offset: 0.3 }, { translate: '0 0', offset: 0.55 },
+                { translate: '0 -9px', offset: 0.78 }, { translate: '0 0' }],
+            { duration: 750, easing: 'ease-in-out' },
+        );
+
+        // La gerbe monte jusqu'en haut de la page puis retombe, comme l'éruption du volcan de Naya.
+        const gravity = 1100;
+        for (let i = 0; i < 26; i++) {
+            const piece = emoji(SUMMIT_BURST[i % SUMMIT_BURST.length], 'rando-burst');
+            const size = rand(26, 46);
+            piece.style.width = size + 'px';
+            piece.style.left = sx - size / 2 + 'px';
+            piece.style.top = sy - size / 2 + 'px';
+            layer.append(piece);
+            const peak = sy * rand(0.45, 1);
+            const vy = -Math.sqrt(2 * gravity * peak);
+            const duration = 2.4;
+            const vx = rand(-0.5, 0.5) * innerWidth / 1.2;
+            const spin = rand(-360, 360);
+            const frames = [];
+            for (let k = 0; k <= 12; k++) {
+                const t = (k / 12) * duration;
+                frames.push({
+                    transform: `translate(${vx * t}px, ${vy * t + 0.5 * gravity * t * t}px) rotate(${spin * t}deg)`,
+                });
+            }
+            piece.animate(frames, { duration: duration * 1000, delay: rand(0, 300), easing: 'linear', fill: 'both' })
+                .finished.then(() => piece.remove(), () => {});
+        }
+
+        // L'écho : Olivier crie « Santé ! » et la montagne répond, de plus en plus loin.
+        for (const [text, ex, ey, fontSize, delay] of SUMMIT_ECHO) {
+            const echo = document.createElement('span');
+            echo.className = 'rando-echo';
+            echo.textContent = text;
+            echo.style.left = ex + 'vw';
+            echo.style.top = ey + 'vh';
+            echo.style.fontSize = fontSize;
+            echo.style.animationDelay = 250 + delay + 'ms';
+            layer.append(echo);
+        }
+
+        // Puis une pluie d'étoiles retombe doucement sur toute la page.
+        for (let i = 0; i < 16; i++) {
+            const star = emoji('star', 'rando-starfall');
+            star.style.width = rand(14, 26) + 'px';
+            star.style.left = rand(2, 96) + 'vw';
+            layer.append(star);
+            star.animate(
+                [
+                    { transform: `translateY(-40px) rotate(0deg)`, opacity: 0 },
+                    { opacity: 1, offset: 0.15 },
+                    { transform: `translateY(${innerHeight * rand(0.55, 0.9)}px) rotate(${rand(-180, 180)}deg)`, opacity: 0 },
+                ],
+                { duration: rand(2200, 3200), delay: 900 + rand(0, 1400), easing: 'ease-in', fill: 'both' },
+            );
+        }
     }
 
     const PEOPLE = {

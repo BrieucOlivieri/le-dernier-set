@@ -4097,16 +4097,12 @@ button.attendance-hint {
     }
 }
 
-/* Olivier, montagnard roots : rando en lacets jusqu'au sommet, panneau jaune de sentier, refuge = bar. */
+/* Olivier, montagnard roots : rando en lacets jusqu'au sommet, panneau jaune de sentier, refuge = bar.
+   Comme le volcan de Naya : la montagne se dresse en bas de l'écran, le ciel laisse deviner la page. */
 .rando {
     position: fixed;
     inset: 0;
     z-index: 60;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: max(8vh, 24px) 16px 0;
     overflow: hidden;
     pointer-events: none;
     transition: opacity 0.7s;
@@ -4123,31 +4119,25 @@ button.attendance-hint {
 }
 
 .rando-sky {
-    background: linear-gradient(#a9dcf3, #e4f3f7 55%, #fde4c4);
+    background: linear-gradient(to top, rgb(150 206 236 / 92%) 0%, rgb(170 216 240 / 70%) 45%, rgb(190 226 245 / 0%) 100%);
     animation: rando-fade 0.5s ease-out both;
 }
 
 .rando-night {
     background:
-        radial-gradient(1.5px 1.5px at 12% 18%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 28% 8%, #fff 99%, transparent),
-        radial-gradient(2px 2px at 44% 22%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 63% 12%, #fff 99%, transparent),
-        radial-gradient(1.5px 1.5px at 78% 26%, #fff 99%, transparent),
-        radial-gradient(2px 2px at 88% 9%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 6% 40%, #fff 99%, transparent),
-        radial-gradient(1.5px 1.5px at 93% 44%, #fff 99%, transparent),
-        radial-gradient(2px 2px at 20% 30%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 36% 14%, #fff 99%, transparent),
-        radial-gradient(2px 2px at 52% 6%, #fff 99%, transparent),
-        radial-gradient(1.5px 1.5px at 70% 34%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 84% 18%, #fff 99%, transparent),
-        radial-gradient(2.5px 2.5px at 58% 28%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 16% 52%, #fff 99%, transparent),
-        radial-gradient(1.5px 1.5px at 96% 60%, #fff 99%, transparent),
-        radial-gradient(1px 1px at 3% 66%, #fff 99%, transparent),
-        radial-gradient(2px 2px at 40% 46%, #fff 99%, transparent),
-        linear-gradient(#0e1b30, #24385a 70%, #3b4f6e);
+        radial-gradient(2px 2px at 12% 30%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 28% 22%, #fff 99%, transparent),
+        radial-gradient(2.5px 2.5px at 44% 34%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 63% 26%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 78% 36%, #fff 99%, transparent),
+        radial-gradient(2.5px 2.5px at 88% 24%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 6% 44%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 20% 40%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 36% 46%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 54% 42%, #fff 99%, transparent),
+        radial-gradient(1.5px 1.5px at 70% 48%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 94% 44%, #fff 99%, transparent),
+        linear-gradient(to top, rgb(20 34 58 / 97%) 0%, rgb(20 34 58 / 85%) 50%, rgb(20 34 58 / 0%) 100%);
     opacity: 0;
     transition: opacity 1.4s;
 }
@@ -4156,32 +4146,15 @@ button.attendance-hint {
     opacity: 1;
 }
 
-.rando-sun {
-    position: absolute;
-    top: 7%;
-    left: 10%;
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #ffe680 0 45%, rgb(255 214 90 / 40%) 46% 62%, transparent 63%);
-    animation: rando-rise 1.2s cubic-bezier(0.2, 0.8, 0.3, 1) both;
-    transition: opacity 1s, scale 0.6s;
-}
-
-.rando.is-night .rando-sun {
-    opacity: 0;
-}
-
-.rando.is-summit .rando-sun {
-    scale: 1.5;
-}
-
+/* La scène, posée en bas de l'écran */
 .rando-scene {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
     z-index: 1;
-    width: min(94vw, 480px);
-    margin-bottom: 96px; /* place pour le panneau planté au premier plan */
-    aspect-ratio: 400 / 280;
+    width: min(100vw, 620px, 72vh * 400 / 350);
+    aspect-ratio: 400 / 350;
+    translate: -50% 0;
 }
 
 .rando-art {
@@ -4194,15 +4167,40 @@ button.attendance-hint {
 
 .rando.is-night .rando-art,
 .rando.is-night .rando-tree {
-    filter: brightness(0.6) saturate(0.8);
+    filter: brightness(0.55) saturate(0.8);
+}
+
+.rando-sun {
+    position: absolute;
+    top: 6%;
+    left: 8%;
+    z-index: -1;
+    width: 18%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffe680 0 45%, rgb(255 214 90 / 40%) 46% 62%, transparent 63%);
+    animation: rando-rise 1.2s cubic-bezier(0.2, 0.8, 0.3, 1) 0.2s both;
+    transition: opacity 1s, scale 0.6s;
+}
+
+.rando.is-night .rando-sun {
+    opacity: 0;
+}
+
+.rando.is-summit .rando-sun {
+    scale: 1.4;
 }
 
 .rando-range {
     animation: rando-range 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 
-.rando-range-back {
-    animation-delay: 0.15s;
+.rando-range-far {
+    animation-delay: 0.05s;
+}
+
+.rando-range-mid {
+    animation-delay: 0.18s;
 }
 
 .rando-range-main {
@@ -4210,7 +4208,7 @@ button.attendance-hint {
 }
 
 .rando-range-front {
-    animation-delay: 0.45s;
+    animation-delay: 0.42s;
 }
 
 .rando-trail {
@@ -4229,7 +4227,7 @@ button.attendance-hint {
     top: 0;
     left: 0;
     z-index: 5;
-    width: 12%;
+    width: 11%;
     height: auto;
     filter: drop-shadow(0 3px 3px rgb(0 0 0 / 30%));
     transition: opacity 0.4s;
@@ -4247,10 +4245,10 @@ button.attendance-hint {
 
 .rando-tent {
     position: absolute;
-    left: 48%;
-    top: 97%;
+    left: 60%;
+    top: 73%;
     z-index: 1;
-    width: 15%;
+    width: 14%;
     height: auto;
     translate: -50% -100%;
     animation: rando-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) 1.3s both;
@@ -4259,18 +4257,55 @@ button.attendance-hint {
 .rando-flag {
     position: absolute;
     z-index: 3;
-    width: 12%;
+    width: 11%;
     height: auto;
     translate: -30% -96%;
     filter: drop-shadow(0 4px 4px rgb(0 0 0 / 30%));
     animation: rando-plant 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both;
 }
 
+/* La fête au sommet, sur toute la page */
+.rando-glory {
+    position: absolute;
+    z-index: 0;
+    width: 260vmax;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: repeating-conic-gradient(rgb(255 232 140 / 70%) 0 7deg, transparent 7deg 16deg);
+    -webkit-mask-image: radial-gradient(circle, #000 2%, rgb(0 0 0 / 60%) 20%, transparent 45%);
+    mask-image: radial-gradient(circle, #000 2%, rgb(0 0 0 / 60%) 20%, transparent 45%);
+    translate: -50% -50%;
+    animation: rando-glory-in 0.8s cubic-bezier(0.2, 1, 0.3, 1) both, rando-glory-spin 18s linear infinite;
+}
+
+.rando-burst,
+.rando-starfall {
+    position: absolute;
+    z-index: 4;
+    height: auto;
+    filter: drop-shadow(0 3px 3px rgb(0 0 0 / 25%));
+}
+
+.rando-starfall {
+    top: 0;
+}
+
+.rando-echo {
+    position: absolute;
+    z-index: 4;
+    color: #fffdf7;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    text-shadow: 0 2px 0 rgb(36 55 46 / 60%), 0 0 18px rgb(36 55 46 / 45%);
+    animation: rando-echo 1.8s ease-out both;
+}
+
 /* L'altimètre */
 .rando-alti {
     position: absolute;
-    top: 3%;
-    right: 2%;
+    top: 4%;
+    right: 3%;
     display: grid;
     margin: 0;
     padding: 5px 11px 6px;
@@ -4294,11 +4329,11 @@ button.attendance-hint {
     font-variant-numeric: tabular-nums;
 }
 
-/* Le panneau jaune des sentiers, planté sur son poteau */
+/* Le panneau jaune des sentiers, planté dans la prairie */
 .rando-sign {
     position: absolute;
-    top: 96%;
-    left: 0;
+    bottom: 3%;
+    left: 3%;
     z-index: 4;
     display: grid;
     justify-items: start;
@@ -4313,7 +4348,7 @@ button.attendance-hint {
     content: "";
     position: absolute;
     top: -4px;
-    bottom: -38px;
+    bottom: -30px;
     left: 26px;
     z-index: -1;
     width: 8px;
@@ -4364,12 +4399,19 @@ button.attendance-hint {
     font-size: var(--fs-xs);
 }
 
+@media (max-width: 480px) {
+    .rando-sign {
+        scale: 0.85;
+        transform-origin: 0 100%;
+    }
+}
+
 /* Le brouillard du « peut-être » */
 .rando-fog {
     position: absolute;
     z-index: 3;
-    width: 75%;
-    height: 32%;
+    width: 80%;
+    height: 26%;
     border-radius: 50%;
     background: radial-gradient(closest-side, rgb(255 255 255 / 95%), rgb(255 255 255 / 0%));
     opacity: 0;
@@ -4377,18 +4419,18 @@ button.attendance-hint {
 }
 
 .rando-fog:nth-of-type(1) {
-    top: 18%;
-    left: -10%;
+    top: 8%;
+    left: -12%;
 }
 
 .rando-fog:nth-of-type(2) {
-    top: 34%;
+    top: 24%;
     left: 30%;
 }
 
 .rando-fog:nth-of-type(3) {
-    top: 52%;
-    left: 5%;
+    top: 40%;
+    left: 4%;
 }
 
 .rando.is-foggy .rando-fog {
@@ -4401,11 +4443,14 @@ button.attendance-hint {
 }
 
 .rando-banner {
-    position: relative;
-    z-index: 2;
+    position: absolute;
+    top: max(9vh, 24px);
+    left: 50%;
+    z-index: 6;
     display: grid;
     justify-items: center;
     gap: 6px;
+    width: max-content;
     max-width: calc(100vw - 32px);
     padding: 12px 22px 14px;
     border: 3px solid var(--green);
@@ -4414,6 +4459,7 @@ button.attendance-hint {
     color: var(--ink);
     text-align: center;
     box-shadow: 0 18px 40px rgb(20 40 30 / 35%);
+    translate: -50% 0;
     rotate: 1.5deg;
     animation: rando-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
 }
@@ -4437,7 +4483,7 @@ button.attendance-hint {
 }
 
 @keyframes rando-range {
-    from { opacity: 0; translate: 0 70px; }
+    from { opacity: 0; translate: 0 90px; }
 }
 
 @keyframes rando-pop {
@@ -4458,6 +4504,21 @@ button.attendance-hint {
     to { rotate: 5deg; translate: 0 -3px; }
 }
 
+@keyframes rando-glory-in {
+    from { opacity: 0; scale: 0.1; }
+}
+
+@keyframes rando-glory-spin {
+    to { rotate: 1turn; }
+}
+
+@keyframes rando-echo {
+    from { opacity: 0; scale: 0.5; translate: -50% -50%; }
+    20% { opacity: 1; scale: 1.05; }
+    70% { opacity: 1; }
+    to { opacity: 0; scale: 1; translate: -50% -130%; }
+}
+
 @keyframes rando-drift {
     to { translate: 18% 0; }
 }
@@ -4474,6 +4535,7 @@ button.attendance-hint {
     .rando-alti,
     .rando-sign,
     .rando.is-foggy .rando-fog,
+    .rando-glory,
     .rando-banner {
         animation: none;
     }
