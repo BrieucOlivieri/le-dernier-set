@@ -432,24 +432,69 @@
         return row;
     }
 
+    // État vide (personne n'a répondu) : une feuille de présence à signer.
+    function createAttendanceSheet() {
+        const sheet = document.createElement('section');
+        sheet.className = 'attendance-sheet';
+        sheet.setAttribute('aria-label', 'Feuille de présence');
+        const decor = (element) => {
+            element.setAttribute('aria-hidden', 'true');
+            return element;
+        };
+        const tape = decor(document.createElement('span'));
+        tape.className = 'attendance-tape';
+        const top = decor(document.createElement('div'));
+        top.className = 'attendance-top';
+        const heading = document.createElement('span');
+        heading.textContent = 'Feuille de présence';
+        const day = document.createElement('span');
+        day.textContent = paris.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+        top.append(heading, day);
+        sheet.append(tape, top);
+        for (let line = 1; line <= 4; line++) {
+            const row = decor(document.createElement('div'));
+            row.className = 'attendance-line';
+            const number = document.createElement('i');
+            number.textContent = line;
+            row.append(number);
+            if (line === 1) {
+                const me = document.createElement('span');
+                me.className = 'attendance-me';
+                me.textContent = 'Toi ?';
+                const hint = document.createElement('span');
+                hint.className = 'attendance-hint';
+                hint.textContent = 'signe ici';
+                row.append(me, hint);
+            }
+            sheet.append(row);
+        }
+        const bottom = document.createElement('div');
+        bottom.className = 'attendance-bottom';
+        const copy = document.createElement('div');
+        const title = document.createElement('b');
+        title.textContent = 'Personne n’a encore signé.';
+        const detail = document.createElement('span');
+        detail.textContent = 'Le barman commence à douter.';
+        copy.append(title, detail);
+        const sign = document.createElement('button');
+        sign.type = 'button';
+        sign.className = 'attendance-cta';
+        sign.textContent = 'Signer en premier ↗';
+        // Va au formulaire et place le curseur dans le prénom ; aucun vote n'est créé.
+        sign.addEventListener('click', () => {
+            $('.vote-card').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+            $('#name').focus({ preventScroll: true });
+        });
+        bottom.append(copy, sign);
+        sheet.append(bottom);
+        return sheet;
+    }
+
     function renderPeople(people) {
         const container = $('#people');
         container.replaceChildren();
         if (!people.length) {
-            const empty = document.createElement('div');
-            empty.className = 'crew-empty';
-            const icon = document.createElement('span');
-            icon.className = 'crew-empty-icon';
-            icon.append(emoji('beer'));
-            icon.setAttribute('aria-hidden', 'true');
-            const copy = document.createElement('div');
-            const title = document.createElement('h3');
-            title.textContent = 'Le barman commence à douter.';
-            const detail = document.createElement('p');
-            detail.textContent = 'Personne n’a encore répondu. À toi de le rassurer !';
-            copy.append(title, detail);
-            empty.append(icon, copy);
-            container.append(empty);
+            container.append(createAttendanceSheet());
             return;
         }
         for (const vote of ['yes', 'maybe', 'no']) {

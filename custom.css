@@ -1102,39 +1102,143 @@ header {
     padding-bottom: 3px;
 }
 
-.crew-card .crew-empty {
+/* État vide : feuille de présence. Seul le fond (::before) est incliné, le texte reste droit et net. */
+.attendance-sheet {
+    position: relative;
+    padding: 26px 24px 22px;
+}
+
+.attendance-sheet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgb(36 55 46 / 14%);
+    border-radius: 6px;
+    background: #fffef9;
+    box-shadow:
+        0 1px 2px rgb(36 55 46 / 12%),
+        0 8px 16px -6px rgb(36 55 46 / 18%);
+    transform: rotate(-1deg);
+}
+
+.attendance-sheet > * {
+    position: relative;
+}
+
+.attendance-sheet .attendance-tape {
+    position: absolute;
+    top: -12px;
+    left: 30px;
+    width: 78px;
+    height: 24px;
+    background: rgb(214 200 160 / 90%);
+    transform: rotate(-5deg);
+    clip-path: polygon(0 0, 4% 25%, 0 50%, 4% 75%, 0 100%, 100% 100%, 96% 75%, 100% 50%, 96% 25%, 100% 0);
+}
+
+/* Sur écran étroit, la date passe sous le titre plutôt que de déborder de la feuille. */
+.attendance-top {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    border: 1px dashed #b9c8b8;
-    border-radius: 16px;
-    background: #f4f7ed;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2px 10px;
+    margin-bottom: 6px;
+    color: var(--green);
+    font-size: var(--fs-label);
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
 }
 
-.crew-card .crew-empty-icon {
-    display: grid;
-    flex: 0 0 52px;
-    width: 52px;
-    height: 52px;
-    place-items: center;
-    border-radius: 50%;
-    background: #e2ecd9;
-    font-size: 27px;
-    line-height: 1;
+.attendance-top span:last-child {
+    color: #566559;
+    font-family: Georgia, serif;
+    font-size: var(--fs-xs);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
-.crew-card .crew-empty h3 {
-    margin: 0 0 4px;
+.attendance-line {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 38px;
+    border-bottom: 1.5px dotted rgb(36 55 46 / 32%);
+}
+
+.attendance-line i {
+    width: 14px;
+    padding-bottom: 4px;
+    color: #8a948a;
+    font-size: var(--fs-label);
+    font-style: normal;
+    font-weight: 800;
+}
+
+.attendance-me {
+    margin-bottom: 5px;
+    padding: 0 6px;
+    background: linear-gradient(transparent 55%, rgb(246 201 74 / 75%) 55%);
+    color: var(--ink);
+    font-family: Georgia, serif;
     font-size: var(--fs-md);
+    font-style: italic;
     line-height: 1.25;
 }
 
-.crew-card .crew-empty p {
-    margin: 0;
-    color: #617260;
+.attendance-hint {
+    margin-left: auto;
+    padding-bottom: 6px;
+    color: #566559;
+    font-size: var(--fs-xs);
+}
+
+.attendance-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.attendance-bottom b {
+    display: block;
+    font-size: var(--fs-md);
+    font-weight: 800;
+}
+
+.attendance-bottom span {
+    color: #566559;
+    font-size: var(--fs-xs);
+}
+
+.attendance-cta {
+    padding: 11px 20px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--yellow);
+    color: var(--ink);
     font-size: var(--fs-sm);
-    line-height: 1.45;
+    font-weight: 800;
+    box-shadow: 0 3px 0 #d5ad35;
+}
+
+@media (max-width: 480px) {
+    .attendance-top {
+        letter-spacing: 0.1em;
+    }
+
+    .attendance-top span {
+        white-space: nowrap;
+    }
+
+    .attendance-top span:last-child {
+        font-size: var(--fs-label);
+    }
 }
 
 .crew-card .location {
