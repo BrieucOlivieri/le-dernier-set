@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Drapeau de La Réunion « Lo Mahavéli », façon emoji 🇷🇪 dans le style Fluent (dégradés doux, tissu ondulé). -->
+  <defs>
+    <linearGradient id="fr-sky" x1="4" y1="14" x2="60" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D7BD6"/>
+      <stop offset="1" stop-color="#1A4FA0"/>
+    </linearGradient>
+    <linearGradient id="fr-ray" x1="0" y1="38" x2="0" y2="10" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE45C"/>
+      <stop offset="1" stop-color="#FFC72C"/>
+    </linearGradient>
+    <linearGradient id="fr-volcano" x1="32" y1="36" x2="32" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4523A"/>
+      <stop offset="1" stop-color="#C8202A"/>
+    </linearGradient>
+    <!-- Reflet du tissu : les creux de l'ondulation sont plus sombres -->
+    <linearGradient id="fr-shade" x1="3" y1="0" x2="61" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.2"/>
+      <stop offset="0.27" stop-color="#000" stop-opacity="0.12"/>
+      <stop offset="0.52" stop-color="#fff" stop-opacity="0.16"/>
+      <stop offset="0.77" stop-color="#000" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.12"/>
+    </linearGradient>
+    <clipPath id="fr-cloth">
+      <path d="M3 17.5C10 14 17 14 24 17.5S38 21 45 17.5S56 14 61 15.5V48C56 46.5 52 46.5 45 50S31 53.5 24 50S10 46.5 3 50Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#fr-cloth)">
+    <rect x="2" y="12" width="60" height="44" fill="url(#fr-sky)"/>
+    <!-- Les cinq rayons qui partent du sommet du volcan -->
+    <g fill="url(#fr-ray)">
+      <path d="M32 36 L0 13 L8 10Z"/>
+      <path d="M32 36 L16 8 L24 7Z"/>
+      <path d="M32 36 L28.5 6 L35.5 6Z"/>
+      <path d="M32 36 L40 7 L48 8Z"/>
+      <path d="M32 36 L56 10 L64 13Z"/>
+    </g>
+    <!-- Le volcan rouge -->
+    <path d="M32 35 L45 56 L19 56Z" fill="url(#fr-volcano)"/>
+    <rect x="2" y="12" width="60" height="44" fill="url(#fr-shade)"/>
+  </g>
+  <path d="M3 17.5C10 14 17 14 24 17.5S38 21 45 17.5S56 14 61 15.5V48C56 46.5 52 46.5 45 50S31 53.5 24 50S10 46.5 3 50Z" stroke="#123B7A" stroke-opacity="0.35" stroke-width="1"/>
+</svg>

@@ -285,9 +285,10 @@
             const old = before.get(person.user_id);
             if (old && old.vote === person.vote) continue;
             freshIds.add(person.user_id);
+            const special = window.leDernierSetSpecial?.find(person.name);
             showLiveNote(
-                LIVE_MESSAGES[old ? 'change' : 'arrive'][person.vote](person.name),
-                SQUADS[person.vote].emoji,
+                special?.live[person.vote] ?? LIVE_MESSAGES[old ? 'change' : 'arrive'][person.vote](person.name),
+                special?.icon ?? SQUADS[person.vote].emoji,
                 person.vote,
             );
             if (person.vote === 'yes') someoneComes = true;
@@ -371,6 +372,12 @@
         name.className = 'person-name';
         name.textContent = person.name + (person === response ? ' (toi)' : '');
         if (person === response) name.classList.add('is-me'); // surligné sur la feuille
+        const badge = window.leDernierSetSpecial?.find(person.name)?.badge;
+        if (badge) {
+            const mark = emoji(badge);
+            mark.classList.add('person-badge');
+            name.append(' ', mark);
+        }
         info.append(name);
         if (person.vote !== 'no') {
             const preference = document.createElement('div');
@@ -803,7 +810,10 @@
     function celebrate(vote, venue) {
         showToast(vote, venue);
         if (vote === 'no') showForfaitStamp();
-        if (vote === 'yes' || vote === 'no') showFallingEffect(vote);
+        // Prénom spécial (special-names.js) : son animation remplace les confettis du « Je viens ».
+        const special = window.leDernierSetSpecial?.find(response?.name);
+        if (special) special.celebrate(vote);
+        if (vote === 'no' || (vote === 'yes' && !special)) showFallingEffect(vote);
     }
 
     // 7. Enregistrement et événements
