@@ -946,13 +946,6 @@ header {
     flex-shrink: 0;
 }
 
-.crew-card .squad-empty {
-    font-size: var(--fs-sm);
-    padding: 0 0 10px;
-    color: #7b8374;
-    font-style: italic;
-}
-
 .refresh-line {
     display: flex;
     justify-content: space-between;
@@ -1227,6 +1220,98 @@ header {
     box-shadow: 0 3px 0 #d5ad35;
 }
 
+/* Les rubriques et les votes sur la feuille */
+.crew-card .attendance-sheet .squad {
+    padding: 0;
+}
+
+.crew-card .attendance-sheet .squad + .squad {
+    margin-top: 16px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.crew-card .attendance-sheet .squad-head {
+    margin-top: 12px;
+}
+
+.crew-card .attendance-sheet .squad-list {
+    padding: 0;
+}
+
+.crew-card .attendance-sheet .squad .person,
+.crew-card .attendance-sheet .squad .person:last-child {
+    gap: 12px;
+    padding: 8px 0 7px;
+    border-bottom: 1.5px dotted rgb(36 55 46 / 32%);
+}
+
+.crew-card .attendance-sheet .avatar {
+    display: none; /* sur la feuille, le numéro de ligne remplace l'avatar */
+}
+
+.attendance-number {
+    flex: 0 0 14px;
+    align-self: flex-start;
+    width: 14px;
+    padding-top: 5px; /* aligné sur le prénom quand la ligne fait deux étages */
+    color: #8a948a;
+    font-size: var(--fs-label);
+    font-style: normal;
+    font-weight: 800;
+}
+
+/* Le prénom est « signé » à la main ; le tien est surligné comme « Toi ? ». */
+.crew-card .attendance-sheet .person-name {
+    font-family: Georgia, serif;
+    font-size: var(--fs-md);
+    font-style: italic;
+    font-weight: 400;
+}
+
+.crew-card .attendance-sheet .person-name.is-me {
+    padding: 0 4px;
+    background: linear-gradient(transparent 55%, rgb(246 201 74 / 75%) 55%);
+}
+
+.attendance-note {
+    margin: 2px 0 0;
+    padding: 6px 0 7px 26px;
+    border-bottom: 1.5px dotted rgb(36 55 46 / 32%);
+    color: #7b8374;
+    font-family: Georgia, serif;
+    font-size: var(--fs-xs);
+    font-style: italic;
+}
+
+.attendance-line.is-invite {
+    margin-top: 6px;
+}
+
+.attendance-sheet.is-blank .attendance-line.is-invite {
+    margin-top: 0;
+}
+
+button.attendance-hint {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: rgb(36 55 46 / 30%);
+    text-underline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+    /* Le commentaire prend toute la largeur ; la pastille du motif passe dessous, alignée sur le prénom. */
+    .crew-card .attendance-sheet .squad-no .person-info {
+        flex-basis: calc(100% - 26px);
+    }
+
+    .crew-card .attendance-sheet .squad-no .person-reason {
+        margin-left: 26px;
+    }
+}
+
 @media (max-width: 480px) {
     .attendance-top {
         letter-spacing: 0.1em;
@@ -1326,64 +1411,6 @@ header {
     background: var(--green);
     color: var(--paper);
     transform: rotate(2deg);
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) .squad-yes {
-    margin-bottom: 12px;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) .squad-yes.is-empty {
-    padding: 10px 12px 12px;
-    border: 1px dashed #c5cabc;
-    border-radius: 12px;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty {
-    display: grid;
-    justify-items: center;
-    gap: 12px;
-    margin: 0;
-    padding: 11px 14px;
-    background: #fffef9;
-    border: 1px solid #d8dfd1;
-    border-radius: 0;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) .squad-maybe.is-empty {
-    border: 2px dashed #c5cabc;
-    border-radius: 12px;
-    margin: 0 60px 12px 60px;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) .squad-no.is-empty {
-    border: 2px dashed #c5cabc;
-    border-radius: 12px;
-    margin: 0 60px 0px 60px;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty .squad-head {
-    min-width: 0;
-    padding: 0;
-}
-
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty h3,
-.crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty h3 em {
-    font-size: var(--fs-base);
-}
-
-.crew-card
-    #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty)
-    :is(.squad-maybe, .squad-no).is-empty
-    .squad-empty {
-    padding: 0;
-    font-size: var(--fs-xs);
-    line-height: 1.4;
 }
 
 .crew-card .refresh-line .text-button {
@@ -2001,11 +2028,6 @@ header {
         margin-left: auto;
     }
 
-    .crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty {
-        margin-right: 0;
-        margin-left: 0;
-    }
-
     .crew-card .squad-no .person {
         flex-wrap: wrap;
     }
@@ -2014,14 +2036,6 @@ header {
         margin-left: 42px;
     }
 
-    .crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty {
-        grid-template-columns: 1fr;
-        gap: 4px;
-    }
-
-    .crew-card #people:has(.squad-maybe .squad-empty):has(.squad-no .squad-empty) :is(.squad-maybe, .squad-no).is-empty .squad-empty {
-        padding-left: 26px;
-    }
 }
 
 @media (hover: hover) and (pointer: fine) {

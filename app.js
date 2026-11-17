@@ -370,6 +370,7 @@
         const name = document.createElement('div');
         name.className = 'person-name';
         name.textContent = person.name + (person === response ? ' (toi)' : '');
+        if (person === response) name.classList.add('is-me'); // surligné sur la feuille
         info.append(name);
         if (person.vote !== 'no') {
             const preference = document.createElement('div');
@@ -432,71 +433,78 @@
         return row;
     }
 
-    // État vide (personne n'a répondu) : une feuille de présence à signer.
-    function createAttendanceSheet() {
+    // Le casting est une feuille de présence : chacun « signe » sur une ligne, dans sa rubrique.
+    function goToVoteForm() {
+        // Va au formulaire et place le curseur dans le prénom ; aucun vote n'est créé.
+        $('.vote-card').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        $('#name').focus({ preventScroll: true });
+    }
+
+    function attendanceLine(number, { invite = false } = {}) {
+        const row = document.createElement('div');
+        row.className = 'attendance-line' + (invite ? ' is-invite' : '');
+        const index = document.createElement('i');
+        index.textContent = number;
+        index.setAttribute('aria-hidden', 'true');
+        row.append(index);
+        if (invite) {
+            const me = document.createElement('span');
+            me.className = 'attendance-me';
+            me.textContent = 'Toi ?';
+            const hint = document.createElement('button');
+            hint.type = 'button';
+            hint.className = 'attendance-hint';
+            hint.textContent = 'signe ici';
+            hint.addEventListener('click', goToVoteForm);
+            row.append(me, hint);
+        } else {
+            row.setAttribute('aria-hidden', 'true');
+        }
+        return row;
+    }
+
+    function renderPeople(people) {
+        const container = $('#people');
         const sheet = document.createElement('section');
-        sheet.className = 'attendance-sheet';
+        sheet.className = 'attendance-sheet' + (people.length ? '' : ' is-blank');
         sheet.setAttribute('aria-label', 'Feuille de présence');
-        const decor = (element) => {
-            element.setAttribute('aria-hidden', 'true');
-            return element;
-        };
-        const tape = decor(document.createElement('span'));
+        const tape = document.createElement('span');
         tape.className = 'attendance-tape';
-        const top = decor(document.createElement('div'));
+        tape.setAttribute('aria-hidden', 'true');
+        const top = document.createElement('div');
         top.className = 'attendance-top';
+        top.setAttribute('aria-hidden', 'true');
         const heading = document.createElement('span');
         heading.textContent = 'Feuille de présence';
         const day = document.createElement('span');
         day.textContent = paris.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
         top.append(heading, day);
         sheet.append(tape, top);
-        for (let line = 1; line <= 4; line++) {
-            const row = decor(document.createElement('div'));
-            row.className = 'attendance-line';
-            const number = document.createElement('i');
-            number.textContent = line;
-            row.append(number);
-            if (line === 1) {
-                const me = document.createElement('span');
-                me.className = 'attendance-me';
-                me.textContent = 'Toi ?';
-                const hint = document.createElement('span');
-                hint.className = 'attendance-hint';
-                hint.textContent = 'signe ici';
-                row.append(me, hint);
-            }
-            sheet.append(row);
-        }
-        const bottom = document.createElement('div');
-        bottom.className = 'attendance-bottom';
-        const copy = document.createElement('div');
-        const title = document.createElement('b');
-        title.textContent = 'Personne n’a encore signé.';
-        const detail = document.createElement('span');
-        detail.textContent = 'Le barman commence à douter.';
-        copy.append(title, detail);
-        const sign = document.createElement('button');
-        sign.type = 'button';
-        sign.className = 'attendance-cta';
-        sign.textContent = 'Signer en premier ↗';
-        // Va au formulaire et place le curseur dans le prénom ; aucun vote n'est créé.
-        sign.addEventListener('click', () => {
-            $('.vote-card').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-            $('#name').focus({ preventScroll: true });
-        });
-        bottom.append(copy, sign);
-        sheet.append(bottom);
-        return sheet;
-    }
+        container.replaceChildren(sheet);
 
-    function renderPeople(people) {
-        const container = $('#people');
-        container.replaceChildren();
         if (!people.length) {
-            container.append(createAttendanceSheet());
+            // Personne n'a répondu : feuille vierge à signer en premier.
+            sheet.append(attendanceLine(1, { invite: true }), attendanceLine(2), attendanceLine(3), attendanceLine(4));
+            const bottom = document.createElement('div');
+            bottom.className = 'attendance-bottom';
+            const copy = document.createElement('div');
+            const title = document.createElement('b');
+            title.textContent = 'Personne n’a encore signé.';
+            const detail = document.createElement('span');
+            detail.textContent = 'Le barman commence à douter.';
+            copy.append(title, detail);
+            const sign = document.createElement('button');
+            sign.type = 'button';
+            sign.className = 'attendance-cta';
+            sign.textContent = 'Signer en premier ↗';
+            sign.addEventListener('click', goToVoteForm);
+            bottom.append(copy, sign);
+            sheet.append(bottom);
             return;
         }
+
+        // Trois rubriques ; les lignes sont numérotées d'une rubrique à l'autre.
+        let number = 0;
         for (const vote of ['yes', 'maybe', 'no']) {
             const meta = SQUADS[vote],
                 group = people.filter((person) => person.vote === vote);
@@ -515,20 +523,29 @@
             badge.textContent = group.length;
             head.append(icon, title, badge);
             section.append(head);
-            if (!group.length) {
-                const empty = document.createElement('p');
-                empty.className = 'squad-empty';
-                empty.textContent = meta.empty;
-                section.append(empty);
-            }
             if (group.length) {
                 const list = document.createElement('div');
                 list.className = 'squad-list';
-                group.forEach((person) => list.append(createPerson(person)));
+                group.forEach((person) => {
+                    const row = createPerson(person);
+                    const index = document.createElement('i');
+                    index.className = 'attendance-number';
+                    index.textContent = ++number;
+                    index.setAttribute('aria-hidden', 'true');
+                    row.prepend(index);
+                    list.append(row);
+                });
                 section.append(list);
+            } else {
+                const note = document.createElement('p');
+                note.className = 'attendance-note';
+                note.textContent = meta.empty;
+                section.append(note);
             }
-            container.append(section);
+            sheet.append(section);
         }
+        // Tant que tu n'as pas répondu, une ligne t'attend en bas de la feuille.
+        if (!response) sheet.append(attendanceLine(number + 1, { invite: true }));
     }
 
     function renderVenueResults(counts, bars) {
