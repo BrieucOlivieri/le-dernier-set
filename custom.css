@@ -1220,6 +1220,13 @@ header {
     box-shadow: 0 3px 0 #d5ad35;
 }
 
+.attendance-cta .emoji {
+    width: 1.25em;
+    height: 1.25em;
+    margin-left: 2px;
+    vertical-align: -0.3em;
+}
+
 /* Les rubriques et les votes sur la feuille */
 .crew-card .attendance-sheet .squad {
     padding: 0;

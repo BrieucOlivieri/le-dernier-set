@@ -503,7 +503,7 @@
             const sign = document.createElement('button');
             sign.type = 'button';
             sign.className = 'attendance-cta';
-            sign.textContent = 'Signer en premier ✒️';
+            sign.append('Signer en premier ', emoji('nib'));
             sign.addEventListener('click', goToVoteForm);
             bottom.append(copy, sign);
             sheet.append(bottom);
@@ -1295,8 +1295,8 @@
 
     // 11. Easter egg : shifumi pour départager une égalité au match des bars (pour rire).
     // SHIFUMI_MIN_SCORE : score minimum de chaque bar pour proposer le shifumi.
-    // 1 = seulement en vraie égalité (1-1, 2-2…) ; 0 le proposerait aussi à 0-0 (pratique pour tester).
-    const SHIFUMI_MIN_SCORE = 1;
+    // 0 = proposé aussi à 0-0, juste pour s'amuser ; 1 le réserverait aux vraies égalités (1-1, 2-2…).
+    const SHIFUMI_MIN_SCORE = 0;
     const SHIFUMI_MOVES = {
         fist: { name: 'Pierre', beats: 'victory' },
         hand: { name: 'Feuille', beats: 'fist' },
