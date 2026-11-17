@@ -7,6 +7,7 @@ Site statique du rendez-vous badminton du jeudi. La version 1 fonctionne avec HT
 - `index.html` : contenu et structure.
 - `custom.css` : styles et adaptations aux écrans.
 - `app.js` : date, formulaire, affichage et animations.
+- `tournament.js` : easter egg « mode tournoi », lancé par le code Konami (clavier : ↑ ↑ ↓ ↓ ← → ← → B A ; téléphone : glisser ↑ ↑ ↓ ↓ ← → ← → puis taper deux fois). Depuis la console : `leDernierSetTournoi()`.
 - `vote-store.js` : connexion Supabase et lecture/écriture des votes partagés.
 - `config.js` : URL du projet Supabase et clé publiable utilisées par le navigateur.
 - `supabase/001_weekly_votes.sql` : table et règles d'accès à appliquer dans Supabase.
@@ -16,6 +17,7 @@ Site statique du rendez-vous badminton du jeudi. La version 1 fonctionne avec HT
 - `supabase/005_realtime_votes.sql` : votes diffusés en direct (Supabase Realtime).
 - `assets/` : images des bars et `og-image.png` (aperçu 1200×630 affiché quand le lien est partagé ; incrémenter `?v=` dans `index.html` quand on la change).
 - `assets/emoji/` : emojis en SVG (Fluent Emoji de Microsoft, licence MIT, style Windows 11) pour un rendu identique sur tous les appareils.
+- `assets/sounds/` : vrais sons de bad du mode tournoi (Freesound, CC0, crédits dans son README).
 
 Pour modifier un composant, ajuste sa règle existante dans `custom.css`. Les sections numérotées de `app.js` regroupent la configuration, le stockage, le formulaire et le rendu.
 

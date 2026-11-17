@@ -2629,3 +2629,497 @@ header {
         animation: none;
     }
 }
+
+/* Easter egg : mode tournoi (code Konami), retransmission télé d'un match entre les deux bars */
+.tournoi {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 50% 110%, #1d4a33 0%, transparent 60%),
+        radial-gradient(circle at 50% 30%, #1b2a22 0%, #0b1410 75%);
+    color: var(--paper);
+    animation: t-in 0.5s ease-out;
+    transition: opacity 0.45s;
+    touch-action: manipulation;
+}
+
+.tournoi.is-leaving {
+    opacity: 0;
+}
+
+.tournoi.is-shaking {
+    animation: t-shake 0.4s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+/* Projecteurs du stade qui balaient la scène */
+.t-lights span {
+    position: absolute;
+    top: -20%;
+    width: 46vmax;
+    height: 120vmax;
+    background: linear-gradient(to bottom, #fff7d8 0%, #fff7d855 30%, transparent 75%);
+    filter: blur(28px);
+    opacity: 0.22;
+    clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+    transform-origin: 50% 0;
+    animation: t-sweep 5s ease-in-out infinite alternate;
+}
+
+.t-lights span:first-child {
+    left: -12%;
+    rotate: -22deg;
+}
+
+.t-lights span:last-child {
+    right: -12%;
+    rotate: 22deg;
+    animation-delay: -2.5s;
+}
+
+/* Terrain vu de la tribune */
+.t-court {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 62%;
+    bottom: -6%;
+    perspective: 700px;
+}
+
+.t-court-lines {
+    position: absolute;
+    inset: 0;
+    border: 4px solid #f3efe0;
+    border-radius: 4px;
+    background:
+        linear-gradient(90deg, transparent calc(50% - 2px), #f3efe0 calc(50% - 2px) calc(50% + 2px), transparent calc(50% + 2px)),
+        linear-gradient(90deg, transparent 28%, #f3efe0aa 28% calc(28% + 3px), transparent calc(28% + 3px) calc(72% - 3px), #f3efe0aa calc(72% - 3px) 72%, transparent 72%),
+        linear-gradient(transparent 46%, #f3efe099 46% calc(46% + 3px), transparent calc(46% + 3px)),
+        linear-gradient(#3f9a62, #2a7048);
+    transform: rotateX(52deg);
+    transform-origin: 50% 0;
+    box-shadow: 0 0 80px #3f9a6255;
+}
+
+.t-net {
+    position: absolute;
+    left: calc(50% - 3px);
+    top: 60%;
+    height: 20%;
+    width: 6px;
+    background:
+        repeating-linear-gradient(0deg, #f3efe066 0 2px, transparent 2px 7px),
+        #f3efe022;
+    border-top: 5px solid #fffdf7;
+    box-shadow: 0 0 0 1px #0b141055;
+}
+
+.t-player {
+    position: absolute;
+    z-index: 3;
+    width: 92px;
+    height: 92px;
+    top: calc(58% - 46px);
+    filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45));
+}
+
+.t-player-pavane {
+    left: calc(13% - 46px);
+}
+
+/* Raquette du Bryan's retournée pour faire face au filet */
+.t-player-bryans {
+    left: calc(87% - 46px);
+    scale: -1 1;
+}
+
+.t-shuttle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    width: 40px;
+    height: 40px;
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* Habillage télé */
+.t-live {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #d9473b;
+    color: #fff;
+    font-size: var(--fs-label);
+    font-weight: 850;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    animation: t-slide-left 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) 0.2s both;
+}
+
+.t-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    animation: live-pulse 1.2s ease-out infinite;
+}
+
+.t-score {
+    position: absolute;
+    top: 56px;
+    left: 50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    background: #fffdf7;
+    color: var(--ink);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    translate: -50% 0;
+    white-space: nowrap;
+    animation: t-drop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.35s both;
+}
+
+.t-team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: var(--fs-sm);
+}
+
+.t-team img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.t-team b {
+    min-width: 1.4em;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--yellow);
+    font-size: 1.35rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.t-team.is-scoring b {
+    animation: t-score-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.t-sep {
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.t-controls {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 6;
+    display: flex;
+    gap: 8px;
+}
+
+.t-controls button {
+    padding: 7px 12px;
+    border: 1px solid #fffdf755;
+    border-radius: 999px;
+    background: #0b141099;
+    color: var(--paper);
+    font-size: var(--fs-xs);
+    font-weight: 750;
+    backdrop-filter: blur(4px);
+}
+
+.t-controls .t-quit {
+    border-color: var(--yellow);
+    background: var(--yellow);
+    color: var(--ink);
+}
+
+.t-comment {
+    position: absolute;
+    left: 50%;
+    bottom: 96px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(92vw, 560px);
+    min-height: 56px;
+    padding: 10px 16px 10px 10px;
+    border-left: 5px solid var(--yellow);
+    border-radius: 6px 14px 14px 6px;
+    background: #fffdf7f2;
+    color: var(--ink);
+    font: italic var(--fs-md) / 1.35 Georgia, serif;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    translate: -50% 0;
+    animation: t-rise 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) 0.5s both;
+}
+
+.t-comment-mic {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+}
+
+/* Le public au premier rang : il sautille, et fait la ola à chaque point */
+.t-crowd {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    z-index: 5;
+    display: flex;
+    justify-content: space-around;
+    padding: 0 8px;
+}
+
+.t-fan {
+    width: 50px;
+    height: 50px;
+    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.5));
+    animation: t-bob 0.9s ease-in-out infinite alternate;
+}
+
+.t-crowd.is-ola .t-fan {
+    animation: t-ola 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) both, t-bob 0.9s ease-in-out 0.9s infinite alternate;
+}
+
+/* Grands textes au centre */
+.t-shout {
+    position: absolute;
+    left: 50%;
+    top: 34%;
+    z-index: 7;
+    padding: 6px 22px;
+    border: 4px solid #fffdf7;
+    border-radius: 12px;
+    background: #d9473b;
+    color: #fff;
+    font-size: clamp(1.6rem, 7vw, 3.6rem);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    translate: -50% -50%;
+    rotate: -4deg;
+    pointer-events: none;
+    animation: t-shout 1.4s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+.t-shout.is-huge {
+    background: var(--yellow);
+    color: var(--ink);
+    border-color: var(--ink);
+}
+
+.t-shout.is-gold {
+    background: var(--ink);
+    color: var(--yellow);
+    border-color: var(--yellow);
+}
+
+.t-burst {
+    position: absolute;
+    z-index: 6;
+    color: var(--yellow);
+    font-size: 1.3rem;
+    font-weight: 900;
+    text-shadow: 0 2px 0 var(--ink), 0 0 12px #000;
+    translate: -50% -50%;
+    pointer-events: none;
+    animation: t-burst 0.7s ease-out both;
+}
+
+.t-champion {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    z-index: 7;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    translate: -50% -50%;
+    text-align: center;
+    animation: t-champion 0.9s cubic-bezier(0.2, 1.5, 0.4, 1) 0.6s both;
+}
+
+.t-champion img {
+    width: min(34vw, 150px);
+    height: min(34vw, 150px);
+    border: 5px solid var(--yellow);
+    border-radius: 50%;
+    box-shadow: 0 0 0 6px #0b1410, 0 0 60px #f6c94aaa;
+}
+
+.t-champion strong {
+    color: var(--yellow);
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    font-weight: 900;
+}
+
+.t-champion span {
+    font: italic var(--fs-md) Georgia, serif;
+}
+
+.t-drop {
+    position: absolute;
+    top: 0;
+    z-index: 8;
+    pointer-events: none;
+}
+
+@keyframes t-in {
+    from { opacity: 0; }
+}
+
+@keyframes t-shake {
+    0%, 100% { translate: 0 0; }
+    20% { translate: -10px 6px; }
+    40% { translate: 9px -5px; }
+    60% { translate: -6px 3px; }
+    80% { translate: 3px -2px; }
+}
+
+@keyframes t-sweep {
+    from { transform: rotate(-12deg); }
+    to { transform: rotate(14deg); }
+}
+
+@keyframes t-slide-left {
+    from { opacity: 0; transform: translateX(-30px); }
+}
+
+@keyframes t-drop {
+    from { opacity: 0; transform: translateY(-40px); }
+}
+
+@keyframes t-rise {
+    from { opacity: 0; transform: translateY(30px); }
+}
+
+@keyframes t-score-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.6); background: var(--yellow); color: var(--ink); }
+    100% { transform: scale(1); }
+}
+
+@keyframes t-bob {
+    from { transform: translateY(0) rotate(-4deg); }
+    to { transform: translateY(-8px) rotate(4deg); }
+}
+
+@keyframes t-ola {
+    0% { transform: translateY(0); }
+    45% { transform: translateY(-46px) scale(1.25) rotate(-8deg); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes t-shout {
+    0% { opacity: 0; transform: scale(2.6); }
+    18% { opacity: 1; transform: scale(0.94); }
+    28% { transform: scale(1.04); }
+    38% { transform: scale(1); }
+    82% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.12); }
+}
+
+@keyframes t-burst {
+    0% { opacity: 0; transform: scale(0.4); }
+    25% { opacity: 1; transform: scale(1.25); }
+    100% { opacity: 0; transform: translateY(-26px) scale(1); }
+}
+
+@keyframes t-champion {
+    from { opacity: 0; transform: scale(0.3) rotate(-12deg); }
+}
+
+@media (max-width: 600px) {
+    .t-live {
+        top: 12px;
+        left: 12px;
+        letter-spacing: 0.6px;
+    }
+
+    .t-controls {
+        top: auto;
+        bottom: 160px;
+        right: 50%;
+        translate: 50% 0;
+    }
+
+    .t-score {
+        top: 52px;
+        gap: 6px;
+        padding: 6px 10px;
+    }
+
+    .t-team span {
+        display: none; /* logos et scores suffisent sur petit écran */
+    }
+
+    .t-comment {
+        bottom: 74px;
+        font-size: var(--fs-sm);
+    }
+
+    .t-player {
+        width: 64px;
+        height: 64px;
+        top: calc(58% - 32px);
+    }
+
+    .t-player-pavane {
+        left: calc(13% - 32px);
+    }
+
+    .t-player-bryans {
+        left: calc(87% - 32px);
+    }
+
+    .t-shuttle {
+        width: 32px;
+        height: 32px;
+    }
+
+    .t-fan {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tournoi,
+    .tournoi.is-shaking,
+    .t-lights span,
+    .t-live,
+    .t-live-dot,
+    .t-score,
+    .t-comment,
+    .t-fan,
+    .t-crowd.is-ola .t-fan,
+    .t-team.is-scoring b,
+    .t-shout,
+    .t-burst,
+    .t-champion {
+        animation: none;
+    }
+}
