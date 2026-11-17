@@ -7,7 +7,7 @@ Site statique du rendez-vous badminton du jeudi. La version 1 fonctionne avec HT
 - `index.html` : contenu et structure.
 - `custom.css` : styles et adaptations aux écrans.
 - `app.js` : date, formulaire, affichage et animations.
-- `special-names.js` : animations dédiées à certains prénoms quand la personne vote (ex. Naya : éruption du Piton de la Fournaise). Ajouter un prénom : une entrée dans `PEOPLE`.
+- `special-names.js` : animations dédiées à certains prénoms quand la personne vote (Naya : éruption du Piton de la Fournaise et drapeau réunionnais ; Maxime : vétéran sépia, chargement poussif et médaille ; Brieuc : surprise). Ajouter un prénom : une entrée dans `PEOPLE`.
 - `tournament.js` : easter egg « mode tournoi », lancé par le code Konami (clavier : ↑ ↑ ↓ ↓ ← → ← → B A ; téléphone : glisser ↑ ↑ ↓ ↓ ← → ← → puis taper deux fois). Depuis la console : `leDernierSetTournoi()`.
 - `vote-store.js` : connexion Supabase et lecture/écriture des votes partagés.
 - `config.js` : URL du projet Supabase et clé publiable utilisées par le navigateur.

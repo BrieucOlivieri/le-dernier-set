@@ -3410,3 +3410,413 @@ button.attendance-hint {
         animation: none;
     }
 }
+
+/* Maxime, vétéran : vieille photo sépia, chargement poussif, médaille et pluie au ralenti. */
+.vet {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.7s;
+}
+
+.vet.is-leaving {
+    opacity: 0;
+}
+
+.vet-sepia {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at center, transparent 45%, rgb(60 40 20 / 45%) 100%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.35'/%3E%3C/svg%3E");
+    -webkit-backdrop-filter: sepia(0.9) contrast(1.05) brightness(0.92);
+    backdrop-filter: sepia(0.9) contrast(1.05) brightness(0.92);
+    animation: vet-fade 0.6s ease-out both;
+}
+
+.vet-loader {
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    z-index: 2;
+    display: grid;
+    gap: 8px;
+    width: min(86vw, 360px);
+    padding: 14px 16px;
+    border: 2px solid #5b4630;
+    border-radius: 6px;
+    background: #f3e7cf;
+    color: #3d2f20;
+    font: 700 var(--fs-sm) / 1.3 "Courier New", Courier, monospace;
+    box-shadow: 4px 4px 0 #5b4630;
+    translate: -50% 0;
+    animation: vet-fade 0.4s ease-out 0.2s both;
+}
+
+.vet-loader.is-done {
+    animation: vet-loader-out 0.35s ease-in both;
+}
+
+.vet-bar {
+    display: block;
+    height: 14px;
+    border: 2px solid #5b4630;
+    border-radius: 3px;
+    background: #fffaf0;
+    overflow: hidden;
+}
+
+.vet-bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: repeating-linear-gradient(90deg, #8a6a3e 0 10px, #a3824f 10px 14px);
+}
+
+.vet-loader b {
+    justify-self: end;
+    font-size: var(--fs-xs);
+}
+
+.vet-maybe .vet-step {
+    animation: vet-blink 1s steps(2) 1.6s infinite;
+}
+
+/* La médaille tombe et se balance au bout de son ruban. */
+.vet-medal {
+    position: absolute;
+    left: 50%;
+    top: 6%;
+    z-index: 2;
+    width: min(26vw, 120px);
+    translate: -50% 0;
+    transform-origin: 50% 0;
+    animation:
+        vet-medal-drop 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both,
+        vet-swing 2.2s ease-in-out 0.7s infinite alternate;
+}
+
+.vet-medal img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 10px 12px rgb(40 25 10 / 45%));
+}
+
+.vet-banner {
+    position: absolute;
+    left: 50%;
+    top: calc(16% + 132px); /* sous la carte de chargement */
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    padding: 12px 22px 14px;
+    border: 3px solid #5b4630;
+    border-radius: 14px;
+    background: #fffaf0;
+    color: #3d2f20;
+    text-align: center;
+    box-shadow: 0 18px 40px rgb(40 25 10 / 40%);
+    translate: -50% 0;
+    rotate: 2deg;
+    animation: naya-stamp 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.vet-yes .vet-banner {
+    top: calc(6% + min(26vw, 120px) + 28px); /* sous la médaille */
+}
+
+.vet-banner strong {
+    font-family: Georgia, serif;
+    font-size: clamp(1.4rem, 6vw, 2.4rem);
+    font-style: italic;
+    line-height: 1.1;
+}
+
+.vet-banner span {
+    font: italic var(--fs-md) / 1.35 Georgia, serif;
+}
+
+.vet-stamp {
+    margin-top: 4px;
+    padding: 2px 12px;
+    border: 3px solid #b0503c;
+    border-radius: 6px;
+    color: #b0503c;
+    font-size: var(--fs-md);
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    rotate: -6deg;
+    animation: forfait-slam 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) 0.35s both;
+}
+
+.vet-drop {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    filter: sepia(0.5) drop-shadow(0 4px 4px rgb(40 25 10 / 30%));
+}
+
+@keyframes vet-fade {
+    from { opacity: 0; }
+}
+
+@keyframes vet-loader-out {
+    to { opacity: 0; transform: translateY(-20px); }
+}
+
+@keyframes vet-blink {
+    to { opacity: 0.35; }
+}
+
+@keyframes vet-medal-drop {
+    from { transform: translateY(-110%); }
+}
+
+@keyframes vet-swing {
+    from { rotate: -7deg; }
+    to { rotate: 7deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vet-sepia,
+    .vet-loader,
+    .vet-step,
+    .vet-medal,
+    .vet-banner,
+    .vet-stamp {
+        animation: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vet-loader.is-done {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* Brieuc, créateur du site : « Le Dernier Set » se termine comme un film, avec son générique de fin. */
+.cine {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    overflow: hidden;
+    color: #f3ead6;
+    transition: opacity 0.7s;
+}
+
+.cine.is-leaving {
+    opacity: 0;
+}
+
+/* Salle obscure : vignette, grain et scintillement du projecteur */
+.cine-screen {
+    position: absolute;
+    inset: 0;
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.18'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse at center, #1f1a14 0%, #0b0907 75%);
+    animation: cine-fade 0.6s ease-out both, cine-flicker 0.18s steps(2) infinite;
+}
+
+.cine-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    height: 9vh;
+    background: #000;
+    animation: cine-bar 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+.cine-bar-top {
+    top: 0;
+    transform-origin: top;
+}
+
+.cine-bar-bottom {
+    bottom: 0;
+    transform-origin: bottom;
+}
+
+.cine-clap,
+.cine-title,
+.cine-ending {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    width: max-content;
+    max-width: calc(100vw - 40px);
+    text-align: center;
+    translate: -50% -50%;
+}
+
+.cine-clap img {
+    width: min(30vw, 130px);
+    height: auto;
+    transform-origin: 20% 80%;
+    animation: cine-clap 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.15s both;
+}
+
+.cine-clap span {
+    font: italic var(--fs-md) Georgia, serif;
+    letter-spacing: 0.05em;
+}
+
+.cine-title,
+.cine-ending,
+.cine.show-title .cine-clap,
+.cine.show-roll .cine-title {
+    opacity: 0;
+    transition: opacity 0.6s;
+}
+
+.cine.show-title .cine-title,
+.cine.show-ending .cine-ending {
+    opacity: 1;
+}
+
+.cine.show-roll .cine-title {
+    opacity: 0;
+}
+
+.cine.show-ending .cine-roll {
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.cine-title strong {
+    font-family: Georgia, serif;
+    font-size: clamp(2rem, 9vw, 4.4rem);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+
+.cine-title span {
+    color: var(--yellow);
+    font: italic var(--fs-md) Georgia, serif;
+    letter-spacing: 0.08em;
+}
+
+/* Le générique défile du bas vers le haut */
+.cine-roll {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    z-index: 2;
+    display: grid;
+    gap: 26px;
+    width: min(88vw, 420px);
+    text-align: center;
+    translate: -50% 0;
+}
+
+.cine-roll p {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+}
+
+.cine-roll small {
+    color: #b9ab8e;
+    font-size: var(--fs-label);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.cine-roll span {
+    font: var(--fs-xl) / 1.2 Georgia, serif;
+}
+
+.cine-roll .cine-disclaimer {
+    margin-top: 18px;
+    color: #b9ab8e;
+    font-size: var(--fs-sm);
+    font-style: italic;
+}
+
+.cine-ending strong {
+    font: italic clamp(2.6rem, 11vw, 5rem) / 1 Georgia, serif;
+}
+
+.cine-ending span {
+    font: italic var(--fs-md) / 1.4 Georgia, serif;
+}
+
+.cine-ending small {
+    color: var(--yellow);
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.cine-popcorn {
+    width: min(22vw, 84px);
+    height: auto;
+}
+
+.cine.show-ending .cine-popcorn {
+    animation: pop-bump 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.3s both;
+}
+
+.cine-skip {
+    position: absolute;
+    right: 16px;
+    bottom: calc(9vh + 14px);
+    z-index: 4;
+    padding: 7px 14px;
+    border: 1px solid #f3ead666;
+    border-radius: 999px;
+    background: #0b090799;
+    color: #f3ead6;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@keyframes cine-fade {
+    from { opacity: 0; }
+}
+
+@keyframes cine-flicker {
+    50% { filter: brightness(1.06); }
+}
+
+@keyframes cine-bar {
+    from { transform: scaleY(0); }
+}
+
+@keyframes cine-clap {
+    0% { transform: rotate(-18deg) scale(0.8); opacity: 0; }
+    60% { transform: rotate(4deg) scale(1.05); opacity: 1; }
+    100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cine-screen,
+    .cine-bar,
+    .cine-clap img,
+    .cine.show-ending .cine-popcorn {
+        animation: none;
+    }
+
+    /* Sans animation, pas de défilement : le générique reste caché, le titre puis « Fin » s'affichent. */
+    .cine-roll {
+        display: none;
+    }
+}
