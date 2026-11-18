@@ -192,21 +192,58 @@
         updateSubmitState();
     }
 
+    // Ce qui manque pour valider : le prénom, et le bar pour « Je viens ».
+    function missingParts() {
+        return {
+            name: !$('#name').value.trim(),
+            venue: selectedVote === 'yes' && !document.querySelector('input[name="venue"]:checked'),
+        };
+    }
+
     function missingRequirement() {
-        if (!$('#name').value.trim()) return 'Indique ton prénom pour répondre.';
-        if (selectedVote === 'yes' && !document.querySelector('input[name="venue"]:checked')) {
-            return 'Choisis ton bar pour valider.';
-        }
+        const { name, venue } = missingParts();
+        if (name && venue) return 'Ajoute ton prénom et choisis ton bar pour valider.';
+        if (name) return 'Ajoute ton prénom pour valider.';
+        if (venue) return 'Choisis ton bar pour valider.';
         return null;
     }
 
-    // Grise le bouton tant que la réponse est incomplète et explique ce qui manque.
+    // [libellé, emoji] du bouton : ce qui manque (main qui montre le haut), sinon envoyer ou mettre à jour.
+    function submitLabel() {
+        const { name, venue } = missingParts();
+        if (name && venue) return ['Il manque ton prénom et ton bar', 'point-up'];
+        if (name) return ['Il manque ton prénom', 'point-up'];
+        if (venue) return ['Il manque ton bar', 'point-up'];
+        return response ? ['Mettre à jour ma réponse', 'pencil'] : ['Allez, je donne ma réponse', 'beers'];
+    }
+
+    // Tant que la réponse est incomplète, le bouton dit ce qui manque.
+    // Il garde son air de bouton : un appui amène sur le champ à remplir.
     function updateSubmitState() {
         const missing = missingRequirement();
-        $('#save').disabled = voteBusy || Boolean(missing);
+        const save = $('#save');
+        save.disabled = voteBusy;
+        save.classList.toggle('is-incomplete', Boolean(missing));
+        save.setAttribute('aria-disabled', String(voteBusy || Boolean(missing)));
+        const [label, icon] = submitLabel();
+        save.replaceChildren(label + ' ', emoji(icon));
         const helper = $('#submit-helper');
         helper.textContent = missing || SUBMIT_HELPER;
         helper.classList.toggle('is-missing', Boolean(missing));
+    }
+
+    // Appui sur le bouton incomplet : on amène l'œil (et le curseur) sur ce qu'il manque.
+    function pointToMissing({ name, venue }) {
+        const fields = [name && $('#name'), venue && $('#venue-options')].filter(Boolean);
+        fields[0].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+        for (const field of fields) {
+            field.classList.remove('is-attention');
+            void field.offsetWidth; // relance l'animation si on rappuie
+            field.classList.add('is-attention');
+            clearTimeout(field.attentionTimer);
+            field.attentionTimer = setTimeout(() => field.classList.remove('is-attention'), 1400);
+        }
+        if (name) $('#name').focus({ preventScroll: true });
     }
 
     function restoreForm() {
@@ -603,9 +640,7 @@
             : sharedVotesReady
               ? 'Votes partagés en direct.'
               : 'Connexion aux votes en cours.';
-        $('#save').textContent = response
-            ? 'Mettre à jour ma réponse ↗'
-            : 'Allez, je donne ma réponse ↗';
+        updateSubmitState(); // libellé du bouton (« donne » / « mets à jour » / ce qui manque)
         $('#remove').classList.toggle('hidden', !response);
     }
 
@@ -808,11 +843,17 @@
     }
 
     function celebrate(vote, venue) {
-        showToast(vote, venue);
         if (vote === 'no') showForfaitStamp();
-        // Prénom spécial (special-names.js) : son animation remplace les confettis du « Je viens ».
+        // Prénom spécial (special-names.js) : son animation remplace les confettis du « Je viens »,
+        // et la bulle « C'est noté » attend la fin de la scène pour ne pas se superposer.
         const special = window.leDernierSetSpecial?.find(response?.name);
-        if (special) special.celebrate(vote);
+        if (special) {
+            special.celebrate(vote).then(() => {
+                if (response?.vote === vote) showToast(vote, venue); // sauf si la réponse a changé entre-temps
+            });
+        } else {
+            showToast(vote, venue);
+        }
         if (vote === 'no' || (vote === 'yes' && !special)) showFallingEffect(vote);
     }
 
@@ -893,6 +934,11 @@
     function handleSubmit(event) {
         event.preventDefault();
         if (!sharedVotesReady || voteMutationPending || !ensureCurrentWeek()) return;
+        const missing = missingParts();
+        if (missing.name || missing.venue) {
+            pointToMissing(missing);
+            return;
+        }
         const name = $('#name').value.trim();
         if (!name) {
             $('#name').setCustomValidity('Indique ton prénom pour répondre.');

@@ -364,138 +364,284 @@
         at(3400 + rollDuration + 4600, close);
     }
 
-    // Roman, inarrêtable : quand ce n'est pas du bad, c'est de l'escalade, sinon du foot (et parfois du ping-pong).
-    // Sa « Roman-o-matic » tire au sort sa soirée : le bar, c'est le symbole rare du jackpot.
-    const SLOT_ODDS = [
-        ['badminton', 45], // c'est quand même beaucoup badminton
-        ['climber', 25],
-        ['soccer', 18],
-        ['pingpong', 9],
-        ['beers', 3],
-    ];
-    const SLOT_TICKER = 'BAD · ESCALADE · BAD · FOOT · BAD · BAD · PING-PONG · BAD · ESCALADE · FOOT · BAD · ';
-    const SLOT_TEXTS = {
-        yes: { reels: ['beers', 'beers', 'beers'], title: 'JACKPOT !', detail: 'Une soirée sans sport. C’est rarissime.' },
-        maybe: { reels: ['beers', 'beers', null], title: 'La machine hésite…', detail: 'Le bar, ou encore un petit bad ?' },
-        no: { reels: ['badminton', 'climber', 'badminton'], title: 'Perdu !', detail: 'Bad, escalade, bad… Roman ne s’arrête jamais.' },
+    // Roman, chauffeur officiel du club : tout le monde s'inscrit aux mêmes tournois que lui pour qu'il les emmène.
+    // « Taxi Roman » arrive en dérapage, les copains s'entassent, Maxime finit sur le toit, départ en wheelie.
+    // Animations légères (transform et opacity seulement) pour rester fluide sur téléphone.
+    const TAXI_TEXTS = {
+        yes: {
+            title: 'Taxi Roman : départ pour le bar !',
+            details: [
+                'Tout le monde s’inscrit aux mêmes tournois que lui. Pur hasard.',
+                'Roman, chauffeur officiel du club (non rémunéré).',
+                'Prochain arrêt : le bar. Terminus : le bar.',
+            ],
+        },
+        maybe: { title: 'Taxi Roman en attente…', details: ['Toute la team croise les doigts : sans lui, on rentre comment ?'] },
+        no: { title: 'Taxi Roman hors service.', details: ['Brieuc et Maxime rentrent à pied.', 'La porte de secours est fermée ce soir.'] },
     };
 
-    function slotSymbol() {
-        let roll = Math.random() * 100;
-        for (const [symbol, weight] of SLOT_ODDS) {
-            roll -= weight;
-            if (roll < 0) return symbol;
-        }
-        return 'badminton';
-    }
-
     function celebrateRoman(vote) {
-        document.querySelector('.slot')?.remove();
-        const text = SLOT_TEXTS[vote] || SLOT_TEXTS.yes;
+        document.querySelector('.taxi')?.remove();
+        const text = TAXI_TEXTS[vote] || TAXI_TEXTS.yes;
         const layer = document.createElement('div');
-        layer.className = 'slot slot-' + vote;
+        layer.className = 'taxi taxi-' + vote;
         layer.setAttribute('role', 'status');
+        layer.innerHTML = '<span class="taxi-shade" aria-hidden="true"></span><span class="taxi-road" aria-hidden="true"></span>'
+            + '<span class="taxi-sign" aria-hidden="true"><b>Le bar</b><small>400 m</small></span>';
+        const W = innerWidth;
+        const gap = Math.min(56, W * 0.13);
+        const at = (ms, fn) => setTimeout(fn, reduceMotion ? 0 : ms);
 
-        // Le fond : soleil de casino qui tourne et bandeaux de sports qui défilent sans fin.
-        const background = document.createElement('div');
-        background.className = 'slot-bg';
-        background.setAttribute('aria-hidden', 'true');
-        background.innerHTML = '<span class="slot-rays"></span>';
-        for (let i = 0; i < 3; i++) {
-            const band = document.createElement('p');
-            band.className = 'slot-ticker';
-            const run = document.createElement('span');
-            run.textContent = SLOT_TICKER.repeat(4);
-            band.append(run);
-            background.append(band);
-        }
-        layer.append(background);
+        // Un copain sur le trottoir (visage + prénom éventuel).
+        const friend = (face, name, x) => {
+            const seat = document.createElement('span');
+            seat.className = 'taxi-friend';
+            seat.style.left = x + 'px';
+            seat.append(emoji(face));
+            if (name) {
+                const tag = document.createElement('small');
+                tag.textContent = name;
+                seat.append(tag);
+            }
+            layer.append(seat);
+            return seat;
+        };
+        // Une bulle de dialogue au-dessus d'un élément.
+        const say = (el, words, ms = 1300) => {
+            if (!layer.isConnected) return;
+            const box = el.getBoundingClientRect();
+            const bubble = document.createElement('span');
+            bubble.className = 'taxi-say';
+            bubble.textContent = words;
+            bubble.style.left = Math.max(6, Math.min(W - 150, box.left + box.width / 2 - 20)) + 'px';
+            bubble.style.top = box.top - 34 + 'px';
+            layer.append(bubble);
+            setTimeout(() => bubble.remove(), reduceMotion ? 2500 : ms);
+        };
 
-        const machine = document.createElement('div');
-        machine.className = 'slot-machine';
-        machine.innerHTML = '<p class="slot-marquee">Roman-o-matic</p>'
-            + '<p class="slot-question">Ce soir, Roman fait…</p>'
-            + '<span class="slot-lever" aria-hidden="true"></span>';
-        const reels = document.createElement('div');
-        reels.className = 'slot-reels';
-        const strips = text.reels.map((target) => {
-            const windowEl = document.createElement('div');
-            windowEl.className = 'slot-window';
-            const strip = document.createElement('div');
-            strip.className = 'slot-strip';
-            const symbols = [];
-            for (let i = 0; i < 16; i++) symbols.push(slotSymbol());
-            // Une case sous la cible, visible pendant le rebond ; le rouleau sans fin reprend ses deux premières cases.
-            if (target) symbols.push(target, slotSymbol());
-            else symbols.push(...symbols.slice(0, 2));
-            symbols.forEach((symbol) => strip.append(emoji(symbol, 'slot-symbol')));
-            windowEl.append(strip);
-            reels.append(windowEl);
-            return [strip, target];
-        });
-        machine.append(reels);
-        layer.append(machine);
+        const brieuc = friend('grin', 'Brieuc', 10);
+        const buddy = friend('party-face', '', 10 + gap);
+
+        // La voiture : Roman au volant, lumineux « TAXI ROMAN », galerie pour les raquettes.
+        const car = document.createElement('div');
+        car.className = 'taxi-car';
+        const body = emoji('car', 'taxi-body');
+        const driver = emoji('cool', 'taxi-driver');
+        const light = document.createElement('span');
+        light.className = 'taxi-light';
+        light.textContent = 'TAXI ROMAN';
+        const roof = document.createElement('span');
+        roof.className = 'taxi-roof';
+        car.append(roof, light, body, driver);
+        layer.append(car);
         document.body.append(layer);
 
-        const cell = strips[0][0].firstElementChild.offsetHeight || 72;
-        let lastStop = 0;
-        strips.forEach(([strip, target], index) => {
+        const carWidth = car.offsetWidth;
+        // La voiture s'arrête à droite des copains (au milieu de l'écran sur ordinateur).
+        const stopX = Math.min(W - carWidth - 14, Math.max(10 + gap * 2 + 40, W * 0.5 - carWidth * 0.2));
+        const bounce = () => body.animate([{ translate: '0 0' }, { translate: '0 7px' }, { translate: '0 0' }], { duration: 260 });
+        const addBag = () => {
+            const bag = emoji('badminton', 'taxi-bag');
+            bag.style.bottom = roof.children.length * 6 + 'px';
+            roof.append(bag);
+        };
+        // Un saut en cloche d'un élément vers les vitres de la voiture, puis il disparaît dedans.
+        const dive = (el, i) => {
             if (reduceMotion) {
-                strip.style.transform = `translateY(${-16 * cell}px)`;
+                el.style.opacity = 0;
+                addBag();
                 return;
             }
-            strip.classList.add('is-spinning');
-            if (!target) {
-                // Le dernier rouleau tourne sans jamais s'arrêter.
-                strip.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${-16 * cell}px)` }], {
-                    duration: 900, delay: 300, iterations: Infinity, easing: 'linear',
+            const target = body.getBoundingClientRect();
+            const from = el.getBoundingClientRect();
+            const tx = target.left + target.width * (0.35 + i * 0.12) - (from.left + from.width / 2);
+            const ty = target.top + target.height * 0.5 - (from.top + from.height / 2);
+            el.animate(
+                [
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx * 0.5}px, ${Math.min(ty, 0) - 90}px) scale(1.05) rotate(-20deg)`, opacity: 1, offset: 0.5 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0.4) rotate(-40deg)`, opacity: 0 },
+                ],
+                { duration: 480, easing: 'ease-in', fill: 'both' },
+            );
+            setTimeout(() => { addBag(); bounce(); car.classList.add('is-loaded-' + roof.children.length); }, 460);
+        };
+        const puffs = (delay, count, from = 'right') => {
+            for (let i = 0; i < count; i++) {
+                at(delay + i * 140, () => {
+                    if (!layer.isConnected) return;
+                    const box = car.getBoundingClientRect();
+                    const puff = emoji('dash', 'taxi-puff');
+                    puff.style.left = (from === 'right' ? box.right - 16 : box.left + box.width * 0.2) + 'px';
+                    layer.append(puff);
+                    puff.animate(
+                        [{ transform: 'scale(-0.6, 0.6)', opacity: 0.9 }, { transform: 'translate(46px, -16px) scale(-1.3, 1.3)', opacity: 0 }],
+                        { duration: 700, easing: 'ease-out', fill: 'both' },
+                    ).finished.then(() => puff.remove(), () => {});
                 });
-                return;
             }
-            const duration = 1300 + index * 500;
-            lastStop = 300 + duration;
-            strip.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${-16 * cell}px)` }], {
-                duration, delay: 300, easing: 'cubic-bezier(0.2, 0.75, 0.3, 1.06)', fill: 'both',
-            }).finished.then(() => strip.classList.remove('is-spinning'), () => {});
-        });
+        };
 
-        const resultAt = reduceMotion ? 0 : lastStop + 200;
-        setTimeout(() => {
+        let bannerAt;
+        if (vote === 'no') {
+            // Il arrive tranquillement, s'arrête devant les copains… puis repart sans personne.
+            const maxime = friend('older', 'Maxime', 10 + gap * 2);
+            if (reduceMotion) {
+                car.style.transform = `translateX(${-carWidth - 60}px)`;
+            } else {
+                car.animate([{ transform: `translateX(${W + 20}px)` }, { transform: `translateX(${stopX}px)` }], {
+                    duration: 1200, delay: 500, easing: 'ease-out', fill: 'both',
+                });
+            }
+            at(700, () => say(brieuc, 'Le voilà !'));
+            at(1800, () => {
+                light.textContent = 'HORS SERVICE';
+                light.classList.add('is-off');
+                say(car, 'Désolé, entraînement !', 1700);
+            });
+            at(2700, () => {
+                if (reduceMotion) return;
+                car.animate([{ transform: `translateX(${stopX}px)` }, { transform: `translateX(${-carWidth - 60}px)` }], {
+                    duration: 1500, easing: 'ease-in', fill: 'both',
+                });
+                puffs(0, 7);
+            });
+            at(3400, () => {
+                for (const seat of [brieuc, buddy, maxime]) {
+                    if (seat !== maxime) seat.querySelector('img').src = 'assets/emoji/pleading.svg';
+                    seat.classList.add('is-sad');
+                }
+                say(buddy, 'Roman ?!');
+            });
+            at(4000, () => say(maxime, 'À pied… avec mes genoux ?', 1800));
+            bannerAt = 4400;
+        } else {
+            // Il arrive en dérapage (la voiture pique du nez), poussière et crissement de pneus.
+            if (reduceMotion) {
+                car.style.transform = `translateX(${stopX}px)`;
+            } else {
+                car.animate(
+                    [
+                        { transform: `translateX(${W + 20}px)` },
+                        { transform: `translateX(${stopX - 14}px) rotate(-4deg)`, offset: 0.8 },
+                        { transform: `translateX(${stopX + 4}px) rotate(1deg)`, offset: 0.92 },
+                        { transform: `translateX(${stopX}px) rotate(0deg)` },
+                    ],
+                    { duration: 900, delay: 300, easing: 'ease-out', fill: 'both' },
+                );
+                puffs(950, 3, 'left');
+            }
+            at(950, () => {
+                const screech = document.createElement('span');
+                screech.className = 'taxi-screech';
+                screech.textContent = 'SCRIIIITCH !';
+                screech.style.left = Math.max(8, stopX - 40) + 'px';
+                layer.append(screech);
+                setTimeout(() => screech.remove(), 1200);
+            });
+            at(1350, () => say(car, vote === 'yes' ? 'TUT TUT !' : 'TUT… ?'));
+
+            if (vote === 'maybe') {
+                at(1500, () => {
+                    driver.src = 'assets/emoji/thinking.svg';
+                    light.classList.add('is-hazard');
+                    brieuc.classList.add('is-waiting');
+                    buddy.classList.add('is-waiting');
+                });
+                at(1900, () => say(brieuc, 'Alors, on part ?'));
+                bannerAt = 2300;
+            } else {
+                at(1700, () => say(brieuc, 'Je monte devant !'));
+                at(2000, () => dive(brieuc, 0));
+                at(2300, () => dive(buddy, 1));
+                // Un troisième tombe du ciel, direct dans la voiture.
+                const flyer = friend('zany', '', stopX + carWidth * 0.5);
+                flyer.classList.add('is-flying');
+                at(2600, () => {
+                    if (reduceMotion) { flyer.style.opacity = 0; addBag(); return; }
+                    const target = body.getBoundingClientRect();
+                    const from = flyer.getBoundingClientRect();
+                    flyer.style.opacity = 1;
+                    flyer.animate(
+                        [{ transform: `translateY(${-from.top - 80}px) rotate(0deg)` },
+                            { transform: `translateY(${target.top + target.height * 0.5 - from.top - from.height / 2}px) rotate(540deg) scale(0.5)` }],
+                        { duration: 650, easing: 'ease-in', fill: 'both' },
+                    );
+                    setTimeout(() => { flyer.style.opacity = 0; addBag(); bounce(); car.classList.add('is-loaded-3'); }, 640);
+                    say(car, 'YOUHOUUU !', 1000);
+                });
+                // Maxime, le vétéran, arrive en dernier en clopinant… et finit sur le toit.
+                const maxime = friend('older', 'Maxime', -60);
+                maxime.classList.add('is-limping');
+                const maximeX = Math.max(10, stopX - gap - 10);
+                if (!reduceMotion) {
+                    maxime.animate([{ translate: '0 0' }, { translate: `${maximeX + 60}px 0` }],
+                        { duration: 1400, delay: 2900, easing: 'ease-out', fill: 'both' });
+                }
+                at(3200, () => say(maxime, 'Attendez-moi !'));
+                at(4100, () => say(car, 'TUT ! TUT !', 900));
+                at(4400, () => {
+                    maxime.getAnimations().forEach((animation) => animation.cancel());
+                    maxime.remove();
+                    maxime.classList.remove('is-limping');
+                    maxime.style.left = '';
+                    maxime.classList.add('is-on-roof');
+                    car.append(maxime);
+                    bounce();
+                });
+                // Départ en wheelie (trop lourd à l'arrière), une raquette tombe de la galerie.
+                const leave = 5100;
+                at(leave, () => {
+                    if (reduceMotion) return;
+                    car.animate(
+                        [
+                            { transform: `translateX(${stopX}px) rotate(0deg)` },
+                            { transform: `translateX(${stopX + 6}px) rotate(9deg)`, offset: 0.18 },
+                            { transform: `translateX(${stopX - 80}px) rotate(6deg)`, offset: 0.45 },
+                            { transform: `translateX(${-carWidth - 80}px) rotate(0deg)` },
+                        ],
+                        { duration: 1500, easing: 'ease-in', fill: 'both' },
+                    );
+                    puffs(0, 8);
+                    const lost = roof.lastElementChild;
+                    if (lost) {
+                        const box = lost.getBoundingClientRect();
+                        const fallen = emoji('badminton', 'taxi-fallen');
+                        fallen.style.left = box.left + 'px';
+                        fallen.style.top = box.top + 'px';
+                        lost.remove();
+                        layer.append(fallen);
+                        const ground = innerHeight - 40 - box.top;
+                        fallen.animate(
+                            [
+                                { transform: 'translate(0, 0) rotate(0deg)' },
+                                { transform: `translate(40px, ${ground}px) rotate(200deg)`, offset: 0.55 },
+                                { transform: `translate(70px, ${ground - 30}px) rotate(300deg)`, offset: 0.75 },
+                                { transform: `translate(90px, ${ground}px) rotate(360deg)` },
+                            ],
+                            { duration: 900, delay: 250, easing: 'ease-in', fill: 'both' },
+                        );
+                    }
+                });
+                bannerAt = leave + 700;
+            }
+        }
+
+        at(bannerAt, () => {
             const banner = document.createElement('div');
-            banner.className = 'slot-banner';
+            banner.className = 'taxi-banner';
             const title = document.createElement('strong');
             title.textContent = text.title;
             const detail = document.createElement('span');
-            detail.textContent = text.detail;
+            detail.textContent = text.details[Math.floor(Math.random() * text.details.length)];
             banner.append(title, detail);
             layer.append(banner);
-            if (vote === 'yes') {
-                layer.classList.add('is-jackpot');
-                if (!reduceMotion) beerRain(layer);
-            }
-        }, resultAt);
+        });
 
         setTimeout(() => {
             layer.classList.add('is-leaving');
             setTimeout(() => layer.remove(), 600);
-        }, resultAt + (vote === 'yes' ? 3800 : 3200));
-    }
-
-    // Les bières tombent comme les pièces d'un jackpot.
-    function beerRain(layer) {
-        for (let i = 0; i < 22; i++) {
-            const drop = emoji(i % 3 ? 'beer' : 'beers', 'slot-drop');
-            drop.style.width = rand(30, 52) + 'px';
-            drop.style.left = rand(-4, 96) + 'vw';
-            layer.append(drop);
-            drop.animate(
-                [
-                    { transform: `translateY(-80px) rotate(${rand(-40, 40)}deg)` },
-                    { transform: `translateY(${innerHeight + 80}px) rotate(${rand(-200, 200)}deg)` },
-                ],
-                { duration: rand(1500, 2500), delay: rand(0, 1100), easing: 'cubic-bezier(0.4, 0, 0.9, 0.6)', fill: 'both' },
-            );
-        }
+        }, (reduceMotion ? 0 : bannerAt) + 4000);
     }
 
     // Olivier, montagnard roots : rando en lacets jusqu'au sommet, panneau jaune de sentier, refuge = bar.
@@ -809,12 +955,12 @@
         },
         roman: {
             celebrate: celebrateRoman,
-            icon: 'climber',
-            badge: 'climber',
+            icon: 'car',
+            badge: 'car',
             live: {
-                yes: 'Roman arrive (entre deux entraînements).',
-                maybe: 'Roman cherche un trou dans son planning.',
-                no: 'Roman a encore un entraînement.',
+                yes: 'Le taxi Roman est en route.',
+                maybe: 'Le taxi Roman hésite à démarrer.',
+                no: 'Taxi Roman hors service ce soir.',
             },
         },
         olivier: {
@@ -850,5 +996,30 @@
         return alias ? PEOPLE[alias] : null;
     }
 
-    window.leDernierSetSpecial = { find: findPerson };
+    // Chaque scène ajoute un calque à la page puis le retire à la fin (ou quand on la passe) :
+    // celebrate() renvoie une promesse résolue à ce moment-là, pour que la bulle « C'est noté » attende.
+    function untilRemoved(layer) {
+        return new Promise((resolve) => {
+            if (!layer?.isConnected) return resolve();
+            const done = () => { observer.disconnect(); clearTimeout(safety); resolve(); };
+            const observer = new MutationObserver(() => { if (!layer.isConnected) done(); });
+            observer.observe(document.body, { childList: true });
+            const safety = setTimeout(done, 20000); // au cas où
+        });
+    }
+
+    window.leDernierSetSpecial = {
+        find(name) {
+            const person = findPerson(name);
+            if (!person) return null;
+            return {
+                ...person,
+                celebrate(vote) {
+                    const before = new Set(document.body.children);
+                    person.celebrate(vote);
+                    return untilRemoved([...document.body.children].find((el) => !before.has(el)));
+                },
+            };
+        },
+    };
 })();

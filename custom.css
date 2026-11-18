@@ -705,6 +705,47 @@ header {
     cursor: not-allowed;
 }
 
+/* L'emoji du bouton (🍻 envoyer, ✏️ mettre à jour, 👆 ce qui manque) */
+.vote-card .submit .emoji {
+    width: 1.3em;
+    height: 1.3em;
+    margin-left: 2px;
+    vertical-align: -0.3em;
+}
+
+/* Incomplet : le bouton garde son air de bouton (on doit avoir envie d'appuyer) et montre le haut. */
+.vote-card .submit.is-incomplete .emoji {
+    animation: point-up 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes point-up {
+    to { translate: 0 -3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vote-card .submit.is-incomplete .emoji {
+        animation: none;
+    }
+}
+
+/* Le champ manquant se signale : halo jaune et petite secousse. */
+.vote-card .is-attention {
+    border-radius: 12px;
+    box-shadow: 0 0 0 3px var(--yellow), 0 0 0 6px rgb(246 201 74 / 35%);
+    animation: attention-shake 0.4s ease-in-out 2;
+}
+
+@keyframes attention-shake {
+    25% { translate: -5px 0; }
+    75% { translate: 5px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vote-card .is-attention {
+        animation: none;
+    }
+}
+
 .vote-card .helper.is-missing {
     color: var(--ink);
 }
@@ -3828,198 +3869,269 @@ button.attendance-hint {
     }
 }
 
-/* Roman, inarrêtable : la « Roman-o-matic » tire au sort sa soirée (bad, escalade, foot… ou, rarement, le bar). */
-.slot {
+/* Roman, chauffeur officiel du club : « Taxi Roman » embarque les copains et file au bar.
+   Seulement transform et opacity pour rester fluide sur téléphone. */
+.taxi {
     position: fixed;
     inset: 0;
     z-index: 60;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 22px;
-    padding: max(10vh, 30px) 16px 0;
     overflow: hidden;
     pointer-events: none;
-    background: rgb(36 55 46 / 40%);
-    animation: slot-fade 0.35s ease-out both;
     transition: opacity 0.6s;
 }
 
-.slot.is-leaving {
+.taxi.is-leaving {
     opacity: 0;
 }
 
-/* Le fond : soleil de casino et bandeaux de sports qui défilent sans fin */
-.slot-bg {
+.taxi-shade {
     position: absolute;
     inset: 0;
-    z-index: -1;
-    overflow: hidden;
+    background: linear-gradient(to top, rgb(36 55 46 / 78%) 0%, rgb(36 55 46 / 40%) 40%, rgb(36 55 46 / 0%) 80%);
+    animation: taxi-fade 0.4s ease-out both;
 }
 
-.slot-rays {
+/* Le trottoir et la route, sur toute la largeur */
+.taxi-road {
     position: absolute;
-    left: 50%;
-    top: 30%;
-    width: 220vmax;
-    height: 220vmax;
-    margin: -110vmax 0 0 -110vmax;
-    background: repeating-conic-gradient(rgb(246 201 74 / 32%) 0 10deg, transparent 10deg 20deg);
-    -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 45%);
-    mask-image: radial-gradient(circle, #000 8%, transparent 45%);
-    animation: slot-spin 24s linear infinite;
-}
-
-.slot.is-jackpot .slot-rays {
-    background: repeating-conic-gradient(rgb(246 201 74 / 60%) 0 10deg, transparent 10deg 20deg);
-    animation-duration: 6s;
-}
-
-.slot-ticker {
-    position: absolute;
-    left: -20vw;
-    width: 140vw;
-    margin: 0;
-    padding: 6px 0;
-    overflow: hidden;
-    background: rgb(36 55 46 / 75%);
-    color: var(--yellow);
-    font-size: clamp(0.9rem, 3.5vw, 1.3rem);
-    font-weight: 900;
-    letter-spacing: 0.12em;
-    white-space: nowrap;
-    rotate: -8deg;
-}
-
-.slot-ticker span {
-    display: inline-block;
-    animation: slot-ticker 14s linear infinite;
-}
-
-.slot-ticker:nth-of-type(1) {
-    top: 6%;
-}
-
-.slot-ticker:nth-of-type(2) {
-    top: 62%;
-    rotate: 6deg;
-}
-
-.slot-ticker:nth-of-type(2) span {
-    animation-direction: reverse;
-}
-
-.slot-ticker:nth-of-type(3) {
-    top: 86%;
-}
-
-.slot-question {
-    margin: -2px 0 0;
-    color: #fffbe6;
-    font: italic var(--fs-md) / 1.2 Georgia, serif;
-    text-align: center;
-}
-
-.slot-machine {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    gap: 12px;
-    width: min(78vw, 310px);
-    padding: 12px 14px 16px;
-    border: 4px solid #1d3a2b;
-    border-radius: 24px 24px 16px 16px;
-    background: linear-gradient(#3c7356, var(--green));
-    box-shadow: inset 0 -6px 0 rgb(0 0 0 / 20%), 0 22px 44px -10px rgb(20 40 30 / 60%);
-    rotate: -2deg;
-    animation: slot-pop 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
-}
-
-/* Fronton à ampoules qui clignotent */
-.slot-marquee {
-    margin: 0;
-    padding: 9px 8px;
-    border-radius: 12px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 74px;
+    border-top: 14px solid #cfc8bb;
     background:
-        radial-gradient(circle, #fffbe6 2.2px, transparent 2.8px) 0 2px / 14px 100% repeat-x,
-        radial-gradient(circle, #fffbe6 2.2px, transparent 2.8px) 7px calc(100% - 2px) / 14px 100% repeat-x,
-        var(--yellow);
-    background-size: 14px 6px, 14px 6px, auto;
-    color: var(--ink);
-    font-size: clamp(1.05rem, 5vw, 1.35rem);
-    font-weight: 900;
-    letter-spacing: 0.06em;
-    text-align: center;
-    text-transform: uppercase;
-    animation: slot-bulbs 0.5s steps(2) infinite;
+        linear-gradient(90deg, #f3ead6 0 28px, transparent 28px 56px) 0 50% / 56px 4px repeat-x,
+        #3d4545;
+    animation: taxi-slide 0.45s cubic-bezier(0.2, 1, 0.3, 1) both;
 }
 
-.slot-reels {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding: 8px;
-    border-radius: 12px;
-    background: #1d3a2b;
-}
-
-.slot-window {
-    height: 72px;
-    overflow: hidden;
-    border-radius: 8px;
-    background: linear-gradient(#d9d2c0, #fffdf7 25%, #fffdf7 75%, #d9d2c0);
-}
-
-.slot-strip {
+.taxi-friend {
+    position: absolute;
+    bottom: 70px;
+    z-index: 2;
     display: grid;
     justify-items: center;
+    gap: 2px;
+    animation: taxi-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
 }
 
-.slot-strip.is-spinning {
-    filter: blur(1.5px);
+.taxi-friend img {
+    width: clamp(34px, 9vw, 48px);
+    height: auto;
+    filter: drop-shadow(0 3px 3px rgb(0 0 0 / 30%));
 }
 
-.slot-symbol {
-    width: 52px;
-    height: 72px;
-    padding: 10px 0;
-    object-fit: contain;
+.taxi-friend small {
+    order: -1;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #fffdf7;
+    color: var(--ink);
+    font-size: var(--fs-label);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 15%);
 }
 
-.slot.is-jackpot .slot-window {
-    animation: slot-win 0.45s ease-in-out 3 alternate;
+.taxi-friend.is-waiting {
+    animation: taxi-wait 0.45s ease-in-out infinite alternate;
 }
 
-/* Le levier : on le tire au lancement */
-.slot-lever {
+.taxi-friend:nth-of-type(even).is-waiting {
+    animation-delay: 0.2s;
+}
+
+.taxi-friend.is-sad {
+    animation: taxi-sad 0.6s ease-out both;
+}
+
+/* La voiture, posée sur la route */
+.taxi-car {
     position: absolute;
-    top: 96px;
-    right: -22px;
-    width: 8px;
-    height: 64px;
+    left: 0;
+    bottom: 10px;
+    z-index: 3;
+    width: min(44vw, 240px);
+    transform-origin: 85% 100%; /* pour le wheelie : la voiture pivote sur sa roue arrière */
+}
+
+/* Roman au volant, et le lumineux « TAXI ROMAN » sur le toit */
+.taxi-driver {
+    position: absolute;
+    left: 37%;
+    top: 42%;
+    z-index: 1;
+    width: 14%;
+    height: auto;
+}
+
+.taxi-light {
+    position: absolute;
+    left: 14%;
+    bottom: 64%;
+    z-index: -1;
+    padding: 2px 6px;
+    border: 2px solid var(--ink);
+    border-radius: 6px 6px 2px 2px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: clamp(0.5rem, 2.2vw, 0.68rem);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    box-shadow: 0 0 12px rgb(246 201 74 / 80%);
+    animation: taxi-glow 0.9s steps(2) infinite;
+}
+
+.taxi-light.is-off {
+    background: #b9b3a8;
+    box-shadow: none;
+    animation: none;
+}
+
+.taxi-light.is-hazard {
+    background: #ff8a3d;
+    animation-duration: 0.5s;
+}
+
+/* Maxime, assis sur le toit faute de place */
+.taxi-friend.is-on-roof {
+    left: 36%;
+    bottom: 56%;
+    z-index: -1;
+    animation: taxi-pop 0.3s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.taxi-friend.is-limping {
+    animation: taxi-limp 0.42s ease-in-out infinite alternate;
+}
+
+.taxi-friend.is-flying {
+    opacity: 0;
+    animation: none;
+}
+
+/* Le panneau « Le bar » au bord de la route : la direction du taxi */
+.taxi-sign {
+    position: absolute;
+    left: 8px;
+    bottom: 170px;
+    z-index: 1;
+    display: grid;
+    padding: 4px 12px 4px 22px;
     border-radius: 4px;
-    background: #8b9a92;
-    transform-origin: 50% 100%;
-    animation: slot-lever 0.55s ease-in-out 0.1s both;
+    background: #2f7a4f;
+    color: #fff;
+    line-height: 1.15;
+    clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+    animation: taxi-pop 0.4s cubic-bezier(0.2, 1.6, 0.4, 1) 0.3s both;
 }
 
-.slot-lever::before {
-    content: "";
+.taxi-sign b {
+    font-size: var(--fs-xs);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.taxi-sign small {
+    font-size: var(--fs-label);
+}
+
+.taxi-say {
     position: absolute;
-    top: -12px;
-    left: -7px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #ff8a73, #c8202a);
+    z-index: 5;
+    padding: 4px 10px;
+    border: 2px solid var(--ink);
+    border-radius: 12px 12px 12px 3px;
+    background: #fffdf7;
+    color: var(--ink);
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    white-space: nowrap;
+    animation: taxi-honk 1.3s ease-out both;
 }
 
-.slot-banner {
-    position: relative;
+.taxi-screech {
+    position: absolute;
+    bottom: 64px;
+    z-index: 5;
+    color: #fffdf7;
+    font-size: clamp(1rem, 4.5vw, 1.5rem);
+    font-style: italic;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 0 rgb(36 55 46 / 70%);
+    white-space: nowrap;
+    rotate: -4deg;
+    animation: taxi-honk 1.1s ease-out both;
+}
+
+.taxi-fallen {
+    position: absolute;
+    z-index: 4;
+    width: 34px;
+    height: auto;
+}
+
+.taxi-body {
+    display: block;
+    width: 100%;
+    height: auto;
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 6px 5px rgb(0 0 0 / 35%));
+    transition: scale 0.25s;
+}
+
+/* Plus il y a de monde, plus elle s'écrase */
+.taxi-car.is-loaded-2 .taxi-body {
+    scale: 1.02 0.96;
+}
+
+.taxi-car.is-loaded-3 .taxi-body {
+    scale: 1.03 0.93;
+}
+
+.taxi-car.is-loaded-4 .taxi-body {
+    scale: 1.05 0.89;
+}
+
+/* La galerie : une raquette de plus à chaque passager */
+.taxi-roof {
+    position: absolute;
+    left: 58%;
+    bottom: 58%;
+    z-index: -1;
+    width: 34%;
+    height: 0;
+}
+
+.taxi-bag {
+    position: absolute;
+    left: 50%;
+    width: 52%;
+    height: auto;
+    translate: -50% 0;
+    rotate: 60deg; /* raquette couchée sur la galerie */
+    animation: taxi-drop 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.taxi-puff {
+    position: absolute;
+    bottom: 16px;
     z-index: 2;
+    width: 44px;
+    height: auto;
+}
+
+.taxi-banner {
+    position: absolute;
+    top: max(9vh, 24px);
+    left: 50%;
+    z-index: 6;
     display: grid;
     justify-items: center;
     gap: 6px;
+    width: max-content;
     max-width: calc(100vw - 32px);
     padding: 12px 22px 14px;
     border: 3px solid var(--green);
@@ -4028,71 +4140,76 @@ button.attendance-hint {
     color: var(--ink);
     text-align: center;
     box-shadow: 0 18px 40px rgb(20 40 30 / 35%);
-    rotate: 2deg;
-    animation: slot-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+    translate: -50% 0;
+    rotate: -1.5deg;
+    animation: taxi-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
 }
 
-.slot-banner strong {
+.taxi-banner strong {
     font-size: clamp(1.4rem, 6vw, 2.3rem);
     font-weight: 900;
     line-height: 1.1;
 }
 
-.slot-yes .slot-banner strong {
-    color: #c8202a;
-    font-size: clamp(2rem, 10vw, 3.4rem);
-    letter-spacing: 0.04em;
-}
-
-.slot-banner span {
+.taxi-banner span {
     font: italic var(--fs-md) / 1.35 Georgia, serif;
 }
 
-.slot-drop {
-    position: absolute;
-    top: 0;
-    z-index: 1;
-    height: auto;
-    filter: drop-shadow(0 6px 5px rgb(0 0 0 / 25%));
-}
-
-@keyframes slot-spin {
-    to { rotate: 1turn; }
-}
-
-@keyframes slot-ticker {
-    to { translate: -50% 0; }
-}
-
-@keyframes slot-fade {
+@keyframes taxi-fade {
     from { opacity: 0; }
 }
 
-@keyframes slot-pop {
-    from { opacity: 0; scale: 0.8; }
+@keyframes taxi-slide {
+    from { translate: 0 80px; }
 }
 
-@keyframes slot-bulbs {
-    to { background-position: 7px 2px, 0 calc(100% - 2px), 0 0; }
+@keyframes taxi-pop {
+    from { opacity: 0; scale: 0.4; }
 }
 
-@keyframes slot-lever {
-    45% { transform: scaleY(-0.6); }
+@keyframes taxi-drop {
+    from { opacity: 0; translate: -50% -40px; }
 }
 
-@keyframes slot-win {
-    to { background: linear-gradient(#f6c94a, #fff6c9 25%, #fff6c9 75%, #f6c94a); }
+@keyframes taxi-glow {
+    to { box-shadow: none; filter: brightness(0.85); }
+}
+
+@keyframes taxi-limp {
+    from { translate: 0 0; rotate: -6deg; }
+    to { translate: 0 -5px; rotate: 6deg; }
+}
+
+@keyframes taxi-wait {
+    to { translate: 0 -8px; }
+}
+
+@keyframes taxi-sad {
+    50% { rotate: -8deg; }
+    to { translate: 0 4px; rotate: 4deg; }
+}
+
+@keyframes taxi-honk {
+    0% { opacity: 0; scale: 0.4; }
+    15% { opacity: 1; scale: 1.15; }
+    30% { scale: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; translate: 0 -10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .slot,
-    .slot-machine,
-    .slot-marquee,
-    .slot-lever,
-    .slot-banner,
-    .slot.is-jackpot .slot-window,
-    .slot-rays,
-    .slot-ticker span {
+    .taxi-shade,
+    .taxi-road,
+    .taxi-friend,
+    .taxi-friend.is-waiting,
+    .taxi-friend.is-sad,
+    .taxi-bag,
+    .taxi-light,
+    .taxi-sign,
+    .taxi-say,
+    .taxi-screech,
+    .taxi-friend.is-limping,
+    .taxi-banner {
         animation: none;
     }
 }
