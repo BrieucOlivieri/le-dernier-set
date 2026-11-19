@@ -26,6 +26,20 @@
     box-sizing: border-box;
 }
 
+/* Jamais de défilement gauche-droite sur téléphone, même si un élément penché ou un texte
+   (police système plus large selon le téléphone) dépasse de quelques pixels.
+   « clip » ne casse pas la carte de vote collante (sticky) ; « hidden » sur html sert de repli. */
+html {
+    overflow-x: hidden;
+}
+
+@supports (overflow-x: clip) {
+    html,
+    body {
+        overflow-x: clip;
+    }
+}
+
 body {
     margin: 0;
     background: var(--paper);
@@ -4951,4 +4965,118 @@ button.attendance-hint {
 
 .rando-banner::after {
     right: 10px;
+}
+
+/* Petits téléphones (385 px de large ou moins) : on resserre pour éviter les retours à la ligne inutiles. */
+@media (max-width: 385px) {
+    /* En-tête sur une seule ligne : « Le verre d'après » suffit, sans le surtitre */
+    header {
+        flex-wrap: nowrap;
+        gap: 10px;
+        padding: 14px 16px;
+    }
+
+    .brand {
+        gap: 8px;
+        font-size: var(--fs-base);
+        white-space: nowrap;
+    }
+
+    .brandicon {
+        padding: 4px 10px;
+        font-size: 20px;
+    }
+
+    .header-note {
+        padding: 6px 10px;
+    }
+
+    .header-note-kicker {
+        display: none;
+    }
+
+    /* Cartes et feuille de présence moins rembourrées : plus de place pour les noms */
+    .page .card {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .crew-card .attendance-sheet {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .crew-card .attendance-sheet .squad-head {
+        gap: 6px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .crew-card .attendance-sheet .squad h3 {
+        font-size: var(--fs-base);
+    }
+
+    /* Prénom et pastille du bar sur la même ligne tant que ça tient */
+    .crew-card .person-info {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px 8px;
+    }
+
+    /* Bouton shifumi sur une ligne, mains un peu plus petites */
+    .shifumi-button {
+        padding: 5px 12px 5px 8px;
+        font-size: var(--fs-xs);
+        white-space: nowrap;
+    }
+
+    .shifumi-hand {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Fenêtre « Tu es sûr·e ? » : motifs sur deux colonnes compactes pour tout voir sans défiler */
+    .no-dialog-content {
+        padding: 18px 16px 14px;
+    }
+
+    .no-reasons {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .no-reason {
+        min-height: 40px;
+        padding: 6px 8px;
+        font-size: var(--fs-xs);
+    }
+
+    .no-dialog-actions button {
+        min-height: 42px;
+    }
+
+    /* Mode tournoi : « BALLE DE MATCH » tient dans l'écran */
+    .t-shout {
+        padding: 6px 12px;
+        font-size: 6.4vw;
+        letter-spacing: 0.03em;
+    }
+}
+
+/* Très petits écrans (iPhone SE…) : logo et étiquette encore un peu plus compacts */
+@media (max-width: 340px) {
+    .brand {
+        font-size: var(--fs-sm);
+    }
+
+    .header-note-title {
+        font-size: var(--fs-xs);
+    }
+}
+
+/* Le tampon du billet de Brieuc se mêle au papier : le texte dessous reste lisible */
+.ride-ticket-stamp {
+    mix-blend-mode: multiply;
 }

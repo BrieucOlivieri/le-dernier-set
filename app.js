@@ -211,7 +211,10 @@
     // [libellé, emoji] du bouton : ce qui manque (main qui montre le haut), sinon envoyer ou mettre à jour.
     function submitLabel() {
         const { name, venue } = missingParts();
-        if (name && venue) return ['Il manque ton prénom et ton bar', 'point-up'];
+        if (name && venue) {
+            // Sur les petits écrans, version courte pour tenir sur une ligne.
+            return [matchMedia('(max-width: 385px)').matches ? 'Il manque prénom + bar' : 'Il manque ton prénom et ton bar', 'point-up'];
+        }
         if (name) return ['Il manque ton prénom', 'point-up'];
         if (venue) return ['Il manque ton bar', 'point-up'];
         return response ? ['Mettre à jour ma réponse', 'pencil'] : ['Allez, je donne ma réponse', 'beers'];

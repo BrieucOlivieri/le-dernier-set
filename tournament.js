@@ -291,7 +291,7 @@
         const pop = document.createElement('span');
         pop.className = 't-burst';
         pop.textContent = text;
-        pop.style.left = x + 'px';
+        pop.style.left = Math.min(Math.max(x, 70), match.root.clientWidth - 70) + 'px'; // jamais coupé par le bord
         pop.style.top = y + 'px';
         pop.style.rotate = (Math.random() * 30 - 15).toFixed(0) + 'deg';
         match.root.append(pop);
