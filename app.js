@@ -73,6 +73,26 @@
                 'Le plaid remporte la manche.',
             ],
         },
+        tournoi: {
+            emoji: 'trophy',
+            label: 'Tournoi demain',
+            chip: 'Tournoi',
+            jokes: [
+                'Tournoi demain : il garde ses forces (et ses excuses).',
+                'Repos du guerrier avant la compét’. Très pro.',
+                'Le bar attendra la remise des médailles.',
+            ],
+        },
+        pluie: {
+            emoji: 'umbrella-rain',
+            label: 'Il pleut',
+            chip: 'Pluie',
+            jokes: [
+                'Il pleut. Le badiste est soluble, c’est bien connu.',
+                'Trois gouttes et c’est la débandade.',
+                'Ni parapluie ni courage ce soir.',
+            ],
+        },
         mystere: {
             emoji: 'monkey',
             label: 'Je préfère ne pas dire',
