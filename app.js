@@ -410,7 +410,11 @@
         info.className = 'person-info';
         const name = document.createElement('div');
         name.className = 'person-name';
-        name.textContent = person.name + (person === response ? ' (toi)' : '');
+        // Le texte du prénom dans son propre span : c'est lui qui est surligné (pas le badge à côté).
+        const nameText = document.createElement('span');
+        nameText.className = 'person-name-text';
+        nameText.textContent = person.name + (person === response ? ' (toi)' : '');
+        name.append(nameText);
         if (person === response) name.classList.add('is-me'); // surligné sur la feuille
         const badge = window.leDernierSetSpecial?.find(person.name)?.badge;
         if (badge) {

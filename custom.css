@@ -1331,9 +1331,17 @@ header {
     font-weight: 400;
 }
 
-.crew-card .attendance-sheet .person-name.is-me {
+/* Le badge (drapeau, chat…) reste collé au prénom au lieu de passer à la ligne */
+.crew-card .attendance-sheet .person-name {
+    white-space: nowrap;
+}
+
+/* Le surlignage suit le texte du prénom, pas le bloc entier */
+.crew-card .attendance-sheet .person-name.is-me .person-name-text {
     padding: 0 4px;
     background: linear-gradient(transparent 55%, rgb(246 201 74 / 75%) 55%);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
 }
 
 .attendance-note {
@@ -5079,4 +5087,549 @@ button.attendance-hint {
 /* Le tampon du billet de Brieuc se mêle au papier : le texte dessous reste lisible */
 .ride-ticket-stamp {
     mix-blend-mode: multiply;
+}
+
+/* Thibaut : blind test en ouverture, puis karaoké (oui), échecs (peut-être) ou chats (non).
+   Seulement transform et opacity pour les animations, pour rester fluide sur téléphone. */
+.thib {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.6s;
+}
+
+.thib.is-leaving {
+    opacity: 0;
+}
+
+/* La scène : plateau de jeu violet nuit, qui s'adoucit pour les chats */
+.thib-stage {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 35%, #4a2f7a 0%, #1f1438 70%);
+    opacity: 0.94;
+    animation: thib-fade 0.4s ease-out both;
+    transition: opacity 0.6s;
+}
+
+.thib-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 40%, #fff3df 0%, #f2dcc0 75%);
+    opacity: 0;
+    transition: opacity 0.6s;
+}
+
+.thib.is-cosy .thib-stage::after {
+    opacity: 1;
+}
+
+/* Lumières de la boule disco qui balaient la scène */
+.thib-lights {
+    position: absolute;
+    left: 50%;
+    top: 22%;
+    width: 220vmax;
+    height: 220vmax;
+    margin: -110vmax 0 0 -110vmax;
+    background:
+        radial-gradient(circle, rgb(255 92 200 / 55%) 0 1.2%, transparent 1.4%) 0 0 / 9% 9%,
+        radial-gradient(circle, rgb(80 220 255 / 50%) 0 1%, transparent 1.2%) 4.5% 4.5% / 9% 9%;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.thib.is-disco .thib-lights {
+    opacity: 1;
+    animation: thib-spin 14s linear infinite;
+}
+
+/* Ouverture blind test : un gros buzzer qu'on enfonce */
+.thib-quiz {
+    position: absolute;
+    left: 50%;
+    top: 22%;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    color: #fff;
+    text-align: center;
+    translate: -50% 0;
+    transition: opacity 0.35s, scale 0.35s;
+}
+
+.thib-quiz.is-gone {
+    opacity: 0;
+    scale: 0.8;
+}
+
+.thib-quiz-title {
+    margin: 0;
+    color: #ffd84d;
+    font-size: clamp(1.6rem, 8vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow: 0 0 14px rgb(255 216 77 / 60%);
+    animation: thib-pop 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) 0.1s both;
+}
+
+.thib-buzzer {
+    display: grid;
+    place-items: center;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff7a6b, #d6262a 60%, #9e1418);
+    box-shadow: 0 10px 0 #6e0c10, 0 16px 26px rgb(0 0 0 / 45%);
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    animation: thib-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) 0.25s both;
+    transition: translate 0.12s, box-shadow 0.12s;
+}
+
+.thib-quiz.is-buzzed .thib-buzzer {
+    translate: 0 8px;
+    box-shadow: 0 2px 0 #6e0c10, 0 6px 14px rgb(0 0 0 / 45%), 0 0 0 14px rgb(255 216 77 / 35%);
+}
+
+.thib-quiz.is-buzzed .thib-buzzer span::after {
+    content: " !";
+}
+
+.thib-quiz-q {
+    margin: 0;
+    font: italic var(--fs-md) / 1.3 Georgia, serif;
+    animation: thib-fade 0.4s ease-out 0.4s both;
+}
+
+.thib-note {
+    position: absolute;
+    bottom: 12vh;
+    z-index: 1;
+    width: 34px;
+    height: auto;
+}
+
+/* Karaoké : la boule disco, le chat au micro, les paroles */
+.thib-ball {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    z-index: 2;
+    width: clamp(70px, 20vw, 110px);
+    height: auto;
+    translate: -50% -120%;
+    transition: translate 0.7s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.thib.is-disco .thib-ball {
+    translate: -50% 20%;
+    animation: thib-ball 3s linear infinite;
+}
+
+.thib-singer {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    z-index: 2;
+    width: clamp(120px, 34vw, 170px);
+    translate: -50% 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.thib.is-disco .thib-singer {
+    opacity: 1;
+    animation: thib-groove 0.5s ease-in-out 0.4s infinite alternate;
+}
+
+.thib-cat {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.thib-mic {
+    position: absolute;
+    right: -6%;
+    bottom: 2%;
+    width: 42%;
+    height: auto;
+    rotate: -20deg;
+}
+
+.thib-lyrics {
+    position: absolute;
+    left: 50%;
+    top: calc(30% + clamp(130px, 37vw, 185px));
+    z-index: 3;
+    width: min(calc(100vw - 32px), 460px);
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: rgb(10 6 20 / 70%);
+    color: rgb(255 255 255 / 45%);
+    font-size: clamp(1.1rem, 5vw, 1.5rem);
+    font-weight: 900;
+    line-height: 1.35;
+    text-align: center;
+    translate: -50% 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.thib.is-disco .thib-lyrics {
+    opacity: 1;
+}
+
+.thib-lyrics span {
+    transition: color 0.15s;
+}
+
+.thib-lyrics span.is-sung {
+    color: #ffd84d;
+    text-shadow: 0 0 10px rgb(255 216 77 / 60%);
+}
+
+/* L'écran de score du karaoké */
+.thib-score {
+    position: absolute;
+    left: 50%;
+    top: 12%;
+    z-index: 5;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    padding: 14px 26px 16px;
+    border: 3px solid #ff5cc8;
+    border-radius: 16px;
+    background: #140c26;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 0 0 3px #50dcff, 0 0 26px rgb(255 92 200 / 55%), 0 18px 40px rgb(0 0 0 / 45%);
+    translate: -50% 0;
+    rotate: -2deg;
+    animation: thib-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.thib-score p {
+    margin: 0;
+}
+
+.thib-score-label {
+    color: #50dcff;
+    font-size: var(--fs-label);
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+
+.thib-score-value b {
+    color: #ffd84d;
+    font-size: clamp(2.6rem, 13vw, 3.6rem);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.thib-score-value small {
+    color: rgb(255 255 255 / 60%);
+    font-size: var(--fs-md);
+    font-weight: 800;
+}
+
+.thib-score-stars {
+    color: #ffd84d;
+    font-size: var(--fs-lg);
+    letter-spacing: 0.15em;
+}
+
+.thib-score strong,
+.thib-notation strong,
+.thib-paws-card strong {
+    font-size: clamp(1.3rem, 5.6vw, 2rem);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.thib-score > span,
+.thib-paws-card > span {
+    font: italic var(--fs-md) / 1.35 Georgia, serif;
+}
+
+/* Échecs : la pendule, l'échiquier, le cavalier qui hésite */
+.thib-game {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    translate: -50% 0;
+    animation: thib-pop 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) 1.4s both;
+}
+
+.thib-clock {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: #2b2b2b;
+    color: #fff;
+    box-shadow: inset 0 -4px 0 rgb(0 0 0 / 35%);
+}
+
+.thib-clock span {
+    font-size: var(--fs-label);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.thib-clock b {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #f3ead6;
+    color: #c8202a;
+    font: 800 var(--fs-md) / 1.2 "Courier New", Courier, monospace;
+}
+
+.thib-board {
+    position: relative;
+    width: min(70vw, 300px);
+    aspect-ratio: 1;
+    border: 8px solid #5e3a1a;
+    border-radius: 8px;
+    background: repeating-conic-gradient(#ecd9b4 0 25%, #a8743f 0 50%) 0 0 / 50% 50%;
+    box-shadow: 0 18px 34px rgb(0 0 0 / 45%);
+    rotate: -3deg;
+}
+
+.thib-square {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 25%;
+    height: 25%;
+    border: 3px dashed;
+    border-radius: 6px;
+    font-size: var(--fs-label);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.thib-square.is-bar {
+    left: 50%;
+    top: 25%;
+    border-color: #f6c94a;
+    background: rgb(246 201 74 / 55%);
+    color: #3a2a00;
+}
+
+.thib-square.is-couch {
+    left: 75%;
+    top: 50%;
+    border-color: #6aa7e8;
+    background: rgb(106 167 232 / 50%);
+    color: #0d2a4a;
+    font-size: 0.55rem;
+}
+
+.thib-knight {
+    position: absolute;
+    left: 25%;
+    top: 75%;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 25%;
+    height: 25%;
+    color: #1d1d1d;
+    font: clamp(2rem, 11vw, 3rem) / 1 "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", serif;
+    text-shadow: 0 3px 0 rgb(255 255 255 / 40%), 0 6px 8px rgb(0 0 0 / 35%);
+}
+
+.thib-game.is-thinking .thib-knight::after {
+    content: "?";
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    color: #ffd84d;
+    font: 900 var(--fs-xl) system-ui, sans-serif;
+    text-shadow: 0 2px 0 #1d1d1d;
+    animation: thib-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+/* La feuille de notation de la partie */
+.thib-notation {
+    position: absolute;
+    left: 50%;
+    top: 9%;
+    z-index: 5;
+    display: grid;
+    gap: 6px;
+    width: min(calc(100vw - 32px), 420px);
+    padding: 12px 18px 14px;
+    border-radius: 6px;
+    background:
+        repeating-linear-gradient(transparent 0 27px, rgb(42 79 134 / 18%) 27px 28px),
+        #fdfbf4;
+    color: var(--ink);
+    box-shadow: 0 18px 40px rgb(0 0 0 / 40%);
+    translate: -50% 0;
+    rotate: 1.5deg;
+    animation: thib-pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.thib-notation p {
+    margin: 0;
+}
+
+.thib-notation-head {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #2a4f86;
+    color: #2a4f86;
+    font-size: var(--fs-label);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.thib-notation-move {
+    display: flex;
+    gap: 10px;
+    font: 700 var(--fs-sm) "Courier New", Courier, monospace;
+}
+
+.thib-notation-move span {
+    color: #c8202a;
+}
+
+.thib-notation-detail {
+    font: italic var(--fs-md) / 1.35 Georgia, serif;
+}
+
+/* Les chats envahissent l'écran */
+.thib-head {
+    position: absolute;
+    z-index: 2;
+    height: auto;
+    filter: drop-shadow(0 4px 4px rgb(0 0 0 / 20%));
+    animation: thib-pop 0.4s cubic-bezier(0.2, 1.7, 0.4, 1) both;
+}
+
+.thib-walker {
+    position: absolute;
+    left: 0;
+    bottom: 6vh;
+    z-index: 3;
+    width: clamp(80px, 24vw, 120px);
+    height: auto;
+}
+
+.thib-paw {
+    position: absolute;
+    z-index: 1;
+    width: 26px;
+    height: auto;
+    opacity: 0.55;
+    rotate: 35deg;
+    animation: thib-pop 0.3s ease-out both;
+}
+
+.thib-meow {
+    position: absolute;
+    z-index: 4;
+    padding: 4px 10px;
+    border: 2px solid var(--ink);
+    border-radius: 12px 12px 12px 3px;
+    background: #fffdf7;
+    color: var(--ink);
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    animation: thib-pop 0.3s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+/* La carte « soirée ronron », bordée de pattes */
+.thib-paws-card {
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    z-index: 5;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    padding: 16px 24px 16px;
+    border: 3px dashed #c99a6b;
+    border-radius: 24px;
+    background: #fffaf2;
+    color: var(--ink);
+    text-align: center;
+    box-shadow: 0 18px 40px rgb(80 50 20 / 30%);
+    translate: -50% 0;
+    rotate: -1.5deg;
+    animation: thib-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.thib-paws-icon {
+    width: 34px;
+    height: auto;
+}
+
+@keyframes thib-fade {
+    from { opacity: 0; }
+}
+
+@keyframes thib-pop {
+    from { opacity: 0; scale: 0.5; }
+}
+
+@keyframes thib-spin {
+    to { rotate: 1turn; }
+}
+
+@keyframes thib-ball {
+    to { rotate: 1turn; }
+}
+
+@keyframes thib-groove {
+    from { rotate: -6deg; }
+    to { rotate: 6deg; translate: -50% -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .thib-stage,
+    .thib-quiz-title,
+    .thib-buzzer,
+    .thib-quiz-q,
+    .thib.is-disco .thib-lights,
+    .thib.is-disco .thib-ball,
+    .thib.is-disco .thib-singer,
+    .thib-game,
+    .thib-head,
+    .thib-paw,
+    .thib-meow,
+    .thib-score,
+    .thib-notation,
+    .thib-paws-card,
+    .thib-game.is-thinking .thib-knight::after {
+        animation: none;
+    }
 }

@@ -1026,6 +1026,214 @@
         }
     }
 
+    // Thibaut : échecs, karaoké, blind tests et chats. Une passion par réponse, après une ouverture en blind test.
+    // Je viens : karaoké sous la boule disco, un chat au micro. Peut-être : partie d'échecs, le cavalier hésite
+    // entre le bar et le canapé. Je rentre : il rentre retrouver ses chats, qui envahissent l'écran.
+    // Animations légères (transform et opacity seulement) pour rester fluide sur téléphone.
+    const THIB_TEXTS = {
+        yes: {
+            lyrics: ['Ce', 'soir', 'on', 'va', 'au', 'bar,', 'et', 'c’est', 'Thibaut', 'qui', 'chante', '!'],
+            title: 'Thibaut au micro !',
+            details: [
+                'Karaoké au bar ce soir. Prévoyez des bouchons d’oreilles.',
+                'Score parfait. Les chats du quartier applaudissent.',
+                'Blind test, karaoké… et une tournée de plus.',
+            ],
+        },
+        maybe: {
+            title: 'Thibaut réfléchit à son coup…',
+            details: ['Bar ou canapé : la partie est serrée.', 'Le cavalier hésite. Thibaut aussi.'],
+        },
+        no: {
+            title: 'Thibaut rentre voir ses chats.',
+            details: ['Ils l’attendaient (surtout pour les croquettes).', 'Ce soir, c’est soirée ronron.'],
+        },
+    };
+    const THIB_CATS = ['grinning-cat', 'heart-cat', 'grinning-cat', 'heart-cat'];
+
+    function celebrateThibaut(vote) {
+        document.querySelector('.thib')?.remove();
+        const text = THIB_TEXTS[vote] || THIB_TEXTS.yes;
+        const layer = document.createElement('div');
+        layer.className = 'thib thib-' + vote;
+        layer.setAttribute('role', 'status');
+        layer.innerHTML = '<span class="thib-stage" aria-hidden="true"></span><span class="thib-lights" aria-hidden="true"></span>';
+        const at = (ms, fn) => setTimeout(fn, reduceMotion ? 0 : ms);
+        const W = innerWidth;
+        const H = innerHeight;
+
+        // Ouverture : blind test, on buzze la réponse de Thibaut.
+        const quiz = document.createElement('div');
+        quiz.className = 'thib-quiz';
+        quiz.innerHTML = '<p class="thib-quiz-title">Blind test</p>'
+            + '<span class="thib-buzzer"><span>BUZZ</span></span>'
+            + '<p class="thib-quiz-q">Quelle est la réponse de Thibaut ?</p>';
+        layer.append(quiz);
+        document.body.append(layer);
+        at(900, () => quiz.classList.add('is-buzzed'));
+        at(1450, () => quiz.classList.add('is-gone'));
+
+        // Notes de musique qui s'envolent (karaoké et blind test).
+        const notes = (count, delay) => {
+            if (reduceMotion) return;
+            for (let i = 0; i < count; i++) {
+                const note = emoji('notes', 'thib-note');
+                note.style.left = 5 + Math.random() * 85 + 'vw';
+                layer.append(note);
+                note.animate(
+                    [{ transform: 'translateY(0) rotate(0deg)', opacity: 0 }, { opacity: 1, offset: 0.2 },
+                        { transform: `translate(${Math.random() * 60 - 30}px, ${-H * 0.6}px) rotate(${Math.random() * 60 - 30}deg)`, opacity: 0 }],
+                    { duration: 2200 + Math.random() * 1200, delay: delay + Math.random() * 2400, easing: 'ease-out', fill: 'both' },
+                );
+            }
+        };
+        notes(4, 0);
+
+        let bannerAt;
+        let banner;
+        if (vote === 'yes') {
+            // Karaoké : boule disco, lumières qui tournent, un chat au micro, paroles mot à mot.
+            at(1400, () => layer.classList.add('is-disco'));
+            const ball = emoji('mirror-ball', 'thib-ball');
+            layer.append(ball);
+            const singer = document.createElement('div');
+            singer.className = 'thib-singer';
+            singer.append(emoji('grinning-cat', 'thib-cat'), emoji('mic', 'thib-mic'));
+            layer.append(singer);
+            const lyrics = document.createElement('p');
+            lyrics.className = 'thib-lyrics';
+            const words = text.lyrics.map((word) => {
+                const span = document.createElement('span');
+                span.textContent = word;
+                lyrics.append(span, ' ');
+                return span;
+            });
+            layer.append(lyrics);
+            words.forEach((word, i) => at(2000 + i * 260, () => word.classList.add('is-sung')));
+            notes(8, 1600);
+            bannerAt = 2000 + words.length * 260 + 300;
+            banner = () => {
+                const score = document.createElement('div');
+                score.className = 'thib-score';
+                score.innerHTML = '<p class="thib-score-label">Score</p><p class="thib-score-value"><b>0</b><small>/100</small></p>'
+                    + '<p class="thib-score-stars">★★★★★</p>';
+                const title = document.createElement('strong');
+                title.textContent = text.title;
+                const detail = document.createElement('span');
+                detail.textContent = text.details[Math.floor(Math.random() * text.details.length)];
+                score.append(title, detail);
+                const value = score.querySelector('b');
+                const start = performance.now();
+                const tick = (now) => {
+                    const t = reduceMotion ? 1 : Math.min(1, (now - start) / 900);
+                    value.textContent = Math.round(98 * (1 - Math.pow(1 - t, 3)));
+                    if (t < 1 && layer.isConnected) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+                return score;
+            };
+        } else if (vote === 'maybe') {
+            // Échecs : la pendule tourne, le cavalier hésite entre le bar et le canapé.
+            const game = document.createElement('div');
+            game.className = 'thib-game';
+            game.innerHTML = '<p class="thib-clock"><span>Thibaut</span><b>0:10</b></p>'
+                + '<div class="thib-board"><span class="thib-square is-bar">Bar</span><span class="thib-square is-couch">Canapé</span>'
+                + '<span class="thib-knight">♞</span></div>';
+            layer.append(game);
+            const clock = game.querySelector('.thib-clock b');
+            let seconds = 10;
+            const timer = setInterval(() => {
+                if (!layer.isConnected || seconds <= 3) return clearInterval(timer);
+                seconds -= 1;
+                clock.textContent = '0:' + String(seconds).padStart(2, '0');
+            }, reduceMotion ? 10 : 450);
+            // Le cavalier (case b1) part vers le bar (c3)… revient… part vers le canapé (d2)… revient.
+            const knight = game.querySelector('.thib-knight');
+            // Positions en cases depuis b1 : un saut va d'une case à l'autre, en se soulevant à mi-chemin.
+            const hop = ([x1, y1], [x2, y2]) => [
+                { transform: `translate(${x1 * 100}%, ${y1 * 100}%) scale(1)` },
+                { transform: `translate(${(x1 + x2) * 50}%, ${(y1 + y2) * 50}%) scale(1.25)`, offset: 0.5 },
+                { transform: `translate(${x2 * 100}%, ${y2 * 100}%) scale(1)` },
+            ];
+            const home = [0, 0];
+            const bar = [1, -2];
+            const couch = [2, -1];
+            const moves = [hop(home, bar), hop(bar, home), hop(home, couch), hop(couch, home)];
+            if (!reduceMotion) {
+                moves.forEach((frames, i) => at(1900 + i * 560, () => knight.animate(frames, { duration: 450, easing: 'ease-in-out', fill: 'forwards' })));
+            }
+            at(4200, () => game.classList.add('is-thinking'));
+            bannerAt = 4300;
+            banner = () => {
+                const sheet = document.createElement('div');
+                sheet.className = 'thib-notation';
+                sheet.innerHTML = '<p class="thib-notation-head"><span>Feuille de partie</span><span>Coup 42</span></p>'
+                    + '<p class="thib-notation-move"><b>Blancs</b><span>♞ ?? (réflexion en cours)</span></p>';
+                const title = document.createElement('strong');
+                title.textContent = text.title;
+                const detail = document.createElement('span');
+                detail.className = 'thib-notation-detail';
+                detail.textContent = text.details[Math.floor(Math.random() * text.details.length)];
+                sheet.append(title, detail);
+                return sheet;
+            };
+        } else {
+            // Les chats : ils arrivent de partout, s'installent, et un chat traverse l'écran.
+            at(1400, () => layer.classList.add('is-cosy'));
+            for (let i = 0; i < 11; i++) {
+                const cat = emoji(THIB_CATS[i % THIB_CATS.length], 'thib-head');
+                cat.style.left = 4 + ((i * 37) % 88) + 'vw';
+                cat.style.top = 30 + ((i * 53) % 55) + 'vh';
+                cat.style.width = 40 + ((i * 13) % 26) + 'px';
+                cat.style.animationDelay = (reduceMotion ? 0 : 1.5 + i * 0.12) + 's';
+                cat.style.rotate = ((i * 29) % 30) - 15 + 'deg';
+                layer.append(cat);
+            }
+            const walker = emoji('cat', 'thib-walker');
+            layer.append(walker);
+            if (!reduceMotion) {
+                walker.animate([{ transform: `translateX(${W + 40}px)` }, { transform: 'translateX(-140px)' }],
+                    { duration: 3200, delay: 1600, easing: 'linear', fill: 'both' });
+            }
+            // Traces de pattes qui traversent la page.
+            for (let i = 0; i < 6; i++) {
+                const paw = emoji('paws', 'thib-paw');
+                paw.style.left = 8 + i * 15 + 'vw';
+                paw.style.top = 78 - i * 9 + 'vh';
+                paw.style.animationDelay = (reduceMotion ? 0 : 1.6 + i * 0.22) + 's';
+                layer.append(paw);
+            }
+            const meow = (left, top, delay) => at(delay, () => {
+                const bubble = document.createElement('span');
+                bubble.className = 'thib-meow';
+                bubble.textContent = 'Miaou !';
+                bubble.style.left = left;
+                bubble.style.top = top;
+                layer.append(bubble);
+                setTimeout(() => bubble.remove(), 1400);
+            });
+            meow('14vw', '36vh', 2300);
+            meow('60vw', '52vh', 2900);
+            bannerAt = 3500;
+            banner = () => {
+                const card = document.createElement('div');
+                card.className = 'thib-paws-card';
+                const title = document.createElement('strong');
+                title.textContent = text.title;
+                const detail = document.createElement('span');
+                detail.textContent = text.details[Math.floor(Math.random() * text.details.length)];
+                card.append(emoji('paws', 'thib-paws-icon'), title, detail);
+                return card;
+            };
+        }
+
+        at(bannerAt, () => layer.append(banner()));
+        setTimeout(() => {
+            layer.classList.add('is-leaving');
+            setTimeout(() => layer.remove(), 600);
+        }, (reduceMotion ? 0 : bannerAt) + 2900);
+    }
+
     const PEOPLE = {
         naya: {
             celebrate: celebrateNaya,
@@ -1063,6 +1271,16 @@
                 no: 'Olivier part bivouaquer.',
             },
         },
+        thibaut: {
+            celebrate: celebrateThibaut,
+            icon: 'grinning-cat',
+            badge: 'grinning-cat',
+            live: {
+                yes: 'Thibaut prend le micro !',
+                maybe: 'Thibaut réfléchit à son coup…',
+                no: 'Thibaut rentre voir ses chats.',
+            },
+        },
         maxime: {
             celebrate: celebrateMaxime,
             icon: 'medal',
@@ -1076,7 +1294,10 @@
     };
 
     // Surnoms et noms de famille reconnus n'importe où dans le nom saisi (« O. Roques », « Oliv »…).
-    const ALIASES = { olivier: 'olivier', oliv: 'olivier', roques: 'olivier' };
+    const ALIASES = {
+        olivier: 'olivier', oliv: 'olivier', roques: 'olivier',
+        thib: 'thibaut', thibs: 'thibaut', thibault: 'thibaut', thibaud: 'thibaut',
+    };
 
     function findPerson(name) {
         const key = firstNameKey(name);
