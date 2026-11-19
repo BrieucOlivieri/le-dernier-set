@@ -253,115 +253,205 @@
         }
     }
 
-    // Brieuc, qui a créé le site : « Le Dernier Set » finit comme un film, avec son générique.
-    const BRIEUC_CREDITS = [
-        ['Réalisation', 'Brieuc'],
-        ['Scénario', 'Brieuc'],
-        ['Code', 'Brieuc'],
-        ['Assistant de réalisation', 'Claude'],
-        ['Direction artistique des emojis', 'Microsoft Fluent'],
-        ['Bruitages', 'Freesound (CC0)'],
-        ['Effets spéciaux volcaniques', 'Naya'],
-        ['Conseiller technique vétéran', 'Maxime'],
-        ['Décors', 'La Pavane & Le Bryan’s'],
-        ['Cascades', 'Le volant'],
-        ['Avec la participation du', 'Canapé'],
-        ['', 'Aucun canapé n’a été maltraité pendant le tournage.'],
-    ];
-    const BRIEUC_ENDINGS = {
-        yes: 'Le réalisateur sera au bar.',
-        maybe: 'Fin alternative en cours d’écriture…',
-        no: 'Le réalisateur rentre. Le film continue sans lui.',
+    // Brieuc, qui a créé le site, ingénieur dans le ferroviaire et éternel instigateur de l'apéro.
+    // L'écran devient l'intérieur d'un wagon : le paysage défile par la fenêtre, la page tremble au rythme
+    // des rails. Je viens : le train arrive… directement dans la pinte. Peut-être : arrêt en pleine voie,
+    // une vache le fixe. Je rentre : tunnel, tout devient noir, direction son lit.
+    // Le texte final prend la forme d'un billet de train composté (ou annulé).
+    // Animations légères (transform et opacity seulement) pour rester fluide sur téléphone.
+    const RIDE_TEXTS = {
+        yes: {
+            display: 'Prochain arrêt : LE BAR',
+            says: 'Bon… on se boit un verre en arrivant ?',
+            to: 'Le bar',
+            stamp: 'Composté',
+            title: 'Terminus : le bar !',
+            details: [
+                'Brieuc a encore convaincu tout le monde.',
+                'Ingénieur ferroviaire : il a optimisé le trajet jusqu’au comptoir.',
+                'Correspondance assurée avec l’apéro.',
+            ],
+        },
+        maybe: {
+            display: 'Arrêt en pleine voie. Merci de votre patience.',
+            says: 'On s’arrête boire un verre… ou pas ?',
+            to: '???',
+            stamp: 'En attente',
+            title: 'Arrêt en pleine voie…',
+            details: ['Brieuc réfléchit. La vache aussi.'],
+        },
+        no: {
+            display: 'Prochain arrêt : TON LIT',
+            says: 'Pas d’apéro ce soir…',
+            to: 'Ton lit',
+            stamp: 'Annulé',
+            title: 'Direction : ton lit.',
+            details: ['Pour une fois, ce n’est pas Brieuc qui propose un verre.', 'Le bar n’est pas desservi ce soir.'],
+        },
     };
 
+    // Le billet de train qui sert de texte final.
+    function rideTicket(vote, text) {
+        const ticket = document.createElement('div');
+        ticket.className = 'ride-ticket ride-ticket-' + vote;
+        const main = document.createElement('div');
+        main.className = 'ride-ticket-main';
+        const head = document.createElement('p');
+        head.className = 'ride-ticket-head';
+        head.innerHTML = '<b>Billet</b><span>Bar Express · 20:00</span>';
+        const route = document.createElement('p');
+        route.className = 'ride-ticket-route';
+        const from = document.createElement('span');
+        from.textContent = 'Badminton';
+        const to = document.createElement('span');
+        to.textContent = text.to;
+        route.append(from, emoji('train'), to);
+        const title = document.createElement('strong');
+        title.textContent = text.title;
+        const detail = document.createElement('span');
+        detail.className = 'ride-ticket-detail';
+        detail.textContent = text.details[Math.floor(Math.random() * text.details.length)];
+        main.append(head, route, title, detail);
+        const stub = document.createElement('div');
+        stub.className = 'ride-ticket-stub';
+        stub.innerHTML = '<small>Voit.</small><b>3</b><small>Place</small><b>42</b>';
+        const stamp = document.createElement('span');
+        stamp.className = 'ride-ticket-stamp';
+        stamp.textContent = text.stamp;
+        ticket.append(main, stub, stamp);
+        return ticket;
+    }
+
     function celebrateBrieuc(vote) {
-        document.querySelector('.cine')?.remove();
+        document.querySelector('.ride')?.remove();
+        const text = RIDE_TEXTS[vote] || RIDE_TEXTS.yes;
         const layer = document.createElement('div');
-        layer.className = 'cine';
-        layer.setAttribute('role', 'dialog');
-        layer.setAttribute('aria-label', 'Générique de fin');
-        const day = document.querySelector('#date')?.textContent || 'jeudi';
+        layer.className = 'ride ride-' + vote;
+        layer.setAttribute('role', 'status');
+        layer.innerHTML = `
+            <div class="ride-cabin" aria-hidden="true">
+                <p class="ride-display"><span></span></p>
+                <div class="ride-window">
+                    <span class="ride-far"></span>
+                    <span class="ride-near"></span>
+                    <span class="ride-poles"></span>
+                </div>
+                <span class="ride-seat ride-seat-left"></span>
+                <span class="ride-seat ride-seat-right"></span>
+            </div>`;
+        const cabin = layer.querySelector('.ride-cabin');
+        const view = layer.querySelector('.ride-window');
+        const display = layer.querySelector('.ride-display span');
+        const showDisplay = (words) => { display.textContent = words + '   ·   ' + words; };
+        showDisplay(text.display);
 
-        const clap = document.createElement('div');
-        clap.className = 'cine-clap';
-        clap.append(emoji('clapper'));
-        const clapText = document.createElement('span');
-        clapText.textContent = 'Clap de fin !';
-        clap.append(clapText);
+        // Brieuc dépasse de son siège, et propose (évidemment) un verre.
+        const brieuc = document.createElement('span');
+        brieuc.className = 'ride-brieuc';
+        const face = emoji('grin');
+        brieuc.append(face);
+        cabin.append(brieuc);
+        document.body.append(layer);
+        const at = (ms, fn) => setTimeout(fn, reduceMotion ? 0 : ms);
+        const say = (words, ms = 2200) => {
+            const bubble = document.createElement('span');
+            bubble.className = 'ride-say';
+            bubble.textContent = words;
+            cabin.append(bubble);
+            setTimeout(() => bubble.remove(), reduceMotion ? 3000 : ms);
+        };
 
-        const title = document.createElement('div');
-        title.className = 'cine-title';
-        title.innerHTML = '<strong>Le Dernier Set</strong><span>un film de Brieuc</span>';
+        // Le paysage défile : trois plans à des vitesses différentes (parallaxe), plus le tremblement.
+        const scroll = (selector, duration) => (reduceMotion ? null : layer.querySelector(selector).animate(
+            [{ transform: 'translateX(0)' }, { transform: 'translateX(-50%)' }], { duration, iterations: Infinity },
+        ));
+        const layers = [scroll('.ride-far', 9000), scroll('.ride-near', 1800), scroll('.ride-poles', 700)].filter(Boolean);
+        const shake = reduceMotion ? null : cabin.animate(
+            [{ translate: '0 0' }, { translate: '0 2px' }, { translate: '0 0' }, { translate: '0 1px' }, { translate: '0 0' }],
+            { duration: 520, iterations: Infinity },
+        );
+        // Ralentir jusqu'à l'arrêt (les vitesses de défilement baissent progressivement).
+        const brake = (duration) => {
+            if (reduceMotion) return;
+            const start = performance.now();
+            const step = (now) => {
+                const rate = Math.max(0, 1 - (now - start) / duration);
+                layers.forEach((animation) => animation.updatePlaybackRate(rate));
+                if (rate > 0 && layer.isConnected) requestAnimationFrame(step);
+                else shake?.cancel();
+            };
+            requestAnimationFrame(step);
+        };
+        const slideIn = (el, from, duration, delay) => {
+            if (reduceMotion) { el.style.transform = 'none'; return; }
+            el.animate([{ transform: from }, { transform: 'none' }],
+                { duration, delay, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)', fill: 'both' });
+        };
 
-        const roll = document.createElement('div');
-        roll.className = 'cine-roll';
-        for (const [role, name] of BRIEUC_CREDITS) {
-            const line = document.createElement('p');
-            if (role) {
-                const r = document.createElement('small');
-                r.textContent = role;
-                line.append(r);
+        at(900, () => say(text.says));
+        let bannerAt;
+        if (vote === 'yes') {
+            // Terminus… directement dans la pinte : la bière monte dans la fenêtre, mousse, bulles, « SANTÉ ! ».
+            const beer = document.createElement('span');
+            beer.className = 'ride-beer';
+            beer.innerHTML = '<span class="ride-foam"></span>';
+            for (let i = 0; i < 14; i++) {
+                const bubble = document.createElement('i');
+                bubble.style.left = Math.random() * 96 + '%';
+                bubble.style.width = bubble.style.height = 4 + Math.random() * 8 + 'px';
+                beer.append(bubble);
+                if (!reduceMotion) {
+                    bubble.animate([{ transform: 'translateY(0)', opacity: 0 }, { opacity: 0.9, offset: 0.2 },
+                        { transform: 'translateY(-260px)', opacity: 0 }],
+                    { duration: 1400 + Math.random() * 1200, delay: Math.random() * 1500, iterations: Infinity });
+                }
             }
-            const n = document.createElement('span');
-            n.textContent = name;
-            if (!role) n.className = 'cine-disclaimer';
-            line.append(n);
-            roll.append(line);
+            view.append(beer);
+            at(2000, () => brake(1400));
+            slideIn(beer, 'translateY(100%)', 1500, 2100);
+            if (!reduceMotion) {
+                beer.querySelector('.ride-foam').animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-50%)' }],
+                    { duration: 2600, iterations: Infinity });
+            }
+            at(3000, () => showDisplay('Terminus : LE BAR. Tout le monde descend !'));
+            at(3400, () => {
+                face.src = 'assets/emoji/party-face.svg';
+                const cheers = document.createElement('div');
+                cheers.className = 'ride-cheers';
+                cheers.innerHTML = '<img class="emoji ride-mug-left" src="assets/emoji/beer.svg" alt="">'
+                    + '<strong>SANTÉ !</strong><img class="emoji ride-mug-right" src="assets/emoji/beer.svg" alt="">';
+                view.append(cheers);
+            });
+            bannerAt = 4600;
+        } else if (vote === 'maybe') {
+            // Arrêt en pleine campagne… une vache vient voir ce qui se passe.
+            at(1900, () => brake(1300));
+            const cow = emoji('cow', 'ride-cow');
+            view.append(cow);
+            slideIn(cow, 'translateX(220%)', 1300, 1900);
+            at(3400, () => { cow.classList.add('is-staring'); face.src = 'assets/emoji/thinking.svg'; });
+            bannerAt = 3900;
+        } else {
+            // Le train entre dans un tunnel : tout devient noir… direction ton lit.
+            const tunnel = document.createElement('span');
+            tunnel.className = 'ride-tunnel';
+            view.append(tunnel);
+            if (reduceMotion) {
+                tunnel.style.transform = 'none';
+            } else {
+                tunnel.animate([{ transform: 'translateX(100%)' }, { transform: 'none' }],
+                    { duration: 450, delay: 2000, easing: 'ease-in', fill: 'both' });
+            }
+            at(2450, () => layer.classList.add('is-dark'));
+            at(3000, () => { face.src = 'assets/emoji/sleeping.svg'; say('Zzz…', 1500); });
+            bannerAt = 3700;
         }
 
-        const ending = document.createElement('div');
-        ending.className = 'cine-ending';
-        const fin = document.createElement('strong');
-        fin.textContent = 'Fin';
-        const message = document.createElement('span');
-        message.textContent = BRIEUC_ENDINGS[vote] || BRIEUC_ENDINGS.yes;
-        const next = document.createElement('small');
-        next.textContent = 'Prochain épisode : ' + day + '.';
-        ending.append(fin, message, next);
-        if (vote === 'yes') ending.prepend(emoji('popcorn', 'cine-popcorn'));
-
-        const skip = document.createElement('button');
-        skip.type = 'button';
-        skip.className = 'cine-skip';
-        skip.textContent = 'Passer le générique ›';
-
-        const bars = '<span class="cine-bar cine-bar-top"></span><span class="cine-bar cine-bar-bottom"></span>';
-        layer.innerHTML = '<div class="cine-screen" aria-hidden="true"></div>' + bars;
-        layer.append(clap, title, roll, ending, skip);
-        document.body.append(layer);
-
-        let closed = false;
-        const timers = [];
-        const close = () => {
-            if (closed) return;
-            closed = true;
-            timers.forEach(clearTimeout);
-            document.removeEventListener('keydown', onKey);
+        at(bannerAt, () => layer.append(rideTicket(vote, text)));
+        setTimeout(() => {
             layer.classList.add('is-leaving');
-            setTimeout(() => layer.remove(), 700);
-        };
-        const onKey = (event) => {
-            if (event.key === 'Escape') close();
-        };
-        skip.addEventListener('click', close);
-        document.addEventListener('keydown', onKey);
-
-        // Déroulé : clap (0 s), titre (1,2 s), générique qui défile (3,4 s), « Fin » (12 s), fermeture (16,5 s).
-        const at = (ms, fn) => timers.push(setTimeout(fn, reduceMotion ? Math.min(ms, 300) : ms));
-        const rollDuration = 8500;
-        at(1200, () => layer.classList.add('show-title'));
-        at(3400, () => {
-            layer.classList.add('show-roll');
-            if (!reduceMotion) {
-                roll.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(calc(-100% - 100vh))' }], {
-                    duration: rollDuration,
-                    easing: 'linear',
-                    fill: 'forwards',
-                });
-            }
-        });
-        at(3400 + rollDuration + 100, () => layer.classList.add('show-ending')); // une fois le générique sorti
-        at(3400 + rollDuration + 4600, close);
+            setTimeout(() => layer.remove(), 600);
+        }, (reduceMotion ? 0 : bannerAt) + 3000);
     }
 
     // Roman, chauffeur officiel du club : tout le monde s'inscrit aux mêmes tournois que lui pour qu'il les emmène.
@@ -945,12 +1035,12 @@
         },
         brieuc: {
             celebrate: celebrateBrieuc,
-            icon: 'clapper',
-            badge: 'clapper',
+            icon: 'train',
+            badge: 'train',
             live: {
-                yes: 'Le réalisateur a voté : il vient !',
-                maybe: 'Le réalisateur hésite sur la fin du film.',
-                no: 'Le réalisateur rentre. Le film continue.',
+                yes: 'Le train de Brieuc entre en gare.',
+                maybe: 'Le train de Brieuc est annoncé en retard.',
+                no: 'Le train de Brieuc est supprimé.',
             },
         },
         roman: {
