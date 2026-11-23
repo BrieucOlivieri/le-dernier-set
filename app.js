@@ -671,6 +671,82 @@
         $('#remove').classList.toggle('hidden', !response);
     }
 
+    // Partage WhatsApp : un récap qui chambre, prêt à envoyer au groupe.
+    const SITE_URL = 'https://brieucolivieri.github.io/le-dernier-set/';
+    // Écrit comme un message du groupe. Pas d'emoji : le lien WhatsApp les abîme.
+    const SHARE_BARS = { pavane: 'la Pavane', bryans: "le Bryan's" };
+    const SHARE_EXCUSES = {
+        moitie: 'sa moitié l\'attend',
+        fatigue: 'la fatigue, paraît-il',
+        boulot: 'boulot demain, comme tout le monde',
+        budget: 'fin de mois',
+        blessure: 'soi-disant une blessure',
+        canape: 'le canapé, au moins c\'est honnête',
+        tournoi: 'tournoi demain, soi-disant',
+        pluie: 'il pleut, sérieux',
+        mystere: 'sans dire pourquoi, c\'est louche',
+    };
+
+    function joinNames(names) {
+        return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' et ' + names.at(-1);
+    }
+
+    function comersLine(names, total) {
+        if (!total) return 'Bon, personne d\'inscrit pour le bar jeudi, vous êtes sérieux ?';
+        if (!names.length) return 'Pour l\'instant personne au bar jeudi, ça craint';
+        if (names.length === 1) return `Pour l'instant y a que ${names[0]} au bar jeudi, ça fait un peu triste`;
+        return `Au bar jeudi pour l'instant : ${joinNames(names)}`;
+    }
+
+    // Même vanne tant que les réponses ne changent pas.
+    function hesitantsLine(names) {
+        const who = joinNames(names);
+        const many = names.length > 1;
+        const seed = Array.from(names.join('')).reduce((sum, character) => sum + character.codePointAt(0), 0);
+        return [
+            `${who} ${many ? 'hésitent' : 'hésite'} encore, comme d'hab`,
+            `${who} ${many ? 'disent' : 'dit'} peut-être, donc non`,
+            `${who} ${many ? 'réfléchissent' : 'réfléchit'} encore, on a le temps de vieillir`,
+        ][seed % 3];
+    }
+
+    function leaversLines(people) {
+        if (people.length > 3) return [`${joinNames(people.map((person) => person.name))} nous lâchent`];
+        return people.map((person, index) => {
+            const excuse = SHARE_EXCUSES[person.reason] || 'même pas d\'excuse';
+            return `${person.name} ${index ? 'aussi' : 'nous lâche'} (${excuse})`;
+        });
+    }
+
+    function barsLine({ pavane, bryans }) {
+        if (!pavane && !bryans) return null;
+        if (pavane === bryans) return 'Égalité entre la Pavane et le Bryan\'s, faut trancher';
+        const leader = pavane > bryans ? 'pavane' : 'bryans';
+        return `Ça part sur ${SHARE_BARS[leader]} pour l'instant (${Math.max(pavane, bryans)}-${Math.min(pavane, bryans)})`;
+    }
+
+    function buildRecap(people, bars) {
+        const group = (vote) => people.filter((person) => person.vote === vote);
+        const yes = group('yes').map((person) => person.name);
+        const maybe = group('maybe').map((person) => person.name);
+        const lines = [comersLine(yes, people.length)];
+        if (maybe.length) lines.push(hesitantsLine(maybe));
+        lines.push(...leaversLines(group('no')));
+        const bar = barsLine(bars);
+        if (bar) lines.push(bar);
+        lines.push('', yes.length ? 'Qui d\'autre ?' : 'Qui vient ?', SITE_URL);
+        return lines.join('\n');
+    }
+
+    function renderShare(bars) {
+        const link = $('#share-whatsapp');
+        // Réservé à Brieuc (celui qui a voté sous ce prénom depuis ce navigateur),
+        // et pas de récap tant que les vrais votes ne sont pas arrivés.
+        const isBrieuc = /^brieuc(?![\p{L}])/iu.test(response?.name?.trim() ?? '');
+        link.hidden = !isBrieuc || !sharedVotesReady || Boolean(sharedVotesError);
+        link.href = 'https://wa.me/?text=' + encodeURIComponent(buildRecap(sharedPeople, bars));
+    }
+
     function render() {
         const { counts, bars } = getResults(sharedPeople);
         $('#count').textContent = counts.yes + ' partant' + (counts.yes > 1 ? 's' : '');
@@ -685,6 +761,7 @@
         freshIds.clear();
         renderVenueResults(counts, bars);
         renderActions();
+        renderShare(bars);
     }
 
     function renderPoster(partants) {

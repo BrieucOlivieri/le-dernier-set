@@ -6246,3 +6246,42 @@ button.attendance-hint {
         animation: none;
     }
 }
+
+/* Partage WhatsApp : le récap qui chambre */
+.share-whatsapp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    margin-top: 14px;
+    padding: 9px 14px;
+    border-radius: 11px;
+    background: var(--yellow);
+    box-shadow: 0 3px 0 #d5ad35;
+    color: var(--ink);
+    font-size: var(--fs-sm);
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+}
+
+.share-whatsapp[hidden] {
+    display: none;
+}
+
+.share-whatsapp:hover {
+    background: #f9d566;
+}
+
+.share-whatsapp:active {
+    box-shadow: 0 1px 0 #d5ad35;
+    transform: translateY(2px);
+}
+
+.share-whatsapp .emoji {
+    width: 1.35em;
+    height: 1.35em;
+    flex: none;
+}
