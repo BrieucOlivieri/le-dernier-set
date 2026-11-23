@@ -34,7 +34,7 @@
         }
         if (!user?.id) throw new Error('Identité anonyme indisponible.');
 
-        const columns = 'event_date,user_id,name,vote,venue,reason,created_at';
+        const columns = 'event_date,user_id,name,vote,venue,reason,reason_text,created_at';
         return {
             userId: user.id,
 
@@ -58,6 +58,7 @@
                         vote: response.vote,
                         venue: response.venue,
                         reason: response.reason,
+                        reason_text: response.reason_text ?? null,
                     }, { onConflict: 'event_date,user_id' })
                     .select(columns)
                     .single();

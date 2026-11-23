@@ -75,10 +75,10 @@
         },
         tournoi: {
             emoji: 'trophy',
-            label: 'Tournoi demain',
+            label: 'Tournoi',
             chip: 'Tournoi',
             jokes: [
-                'Tournoi demain : il garde ses forces (et ses excuses).',
+                'Tournoi : il garde ses forces (et ses excuses).',
                 'Repos du guerrier avant la compét’. Très pro.',
                 'Le bar attendra la remise des médailles.',
             ],
@@ -102,6 +102,13 @@
                 'Silence radio. L’enquête est ouverte.',
                 'Très grave, ou très drôle. Personne ne saura.',
             ],
+        },
+        // Texte libre : c'est l'excuse de la personne (reason_text) qui s'affiche à la place d'une vanne.
+        autre: {
+            emoji: 'pencil',
+            label: 'Autre',
+            chip: 'Autre',
+            jokes: [],
         },
     };
     const NO_REASON_JOKE = 'Sans motif. Le canapé ne pose pas de questions.';
@@ -487,9 +494,13 @@
             const jokeIndex = Array.from(person.name).reduce(
                 (sum, character) => sum + character.codePointAt(0), 0,
             ) % (reason?.jokes.length || 1);
-            banter.textContent = reason
-                ? reason.jokes[person === response ? 0 : jokeIndex]
-                : NO_REASON_JOKE;
+            if (person.reason === 'autre' && person.reason_text) {
+                banter.textContent = '« ' + person.reason_text + ' »';
+            } else {
+                banter.textContent = reason?.jokes.length
+                    ? reason.jokes[person === response ? 0 : jokeIndex]
+                    : NO_REASON_JOKE;
+            }
             info.append(banter);
             if (reason) {
                 const chip = document.createElement('span');
@@ -713,7 +724,7 @@
     function leaversLines(people) {
         if (people.length > 3) return [`${joinNames(people.map((person) => person.name))} nous lâchent`];
         return people.map((person, index) => {
-            const excuse = SHARE_EXCUSES[person.reason] || 'même pas d\'excuse';
+            const excuse = person.reason_text || SHARE_EXCUSES[person.reason] || 'même pas d\'excuse';
             return `${person.name} ${index ? 'aussi' : 'nous lâche'} (${excuse})`;
         });
     }
@@ -967,6 +978,7 @@
         for (const [key, reason] of Object.entries(REASONS)) {
             const label = document.createElement('label');
             label.className = 'no-reason';
+            label.dataset.reason = key; // chaque excuse a sa propre animation d'emoji
             const input = document.createElement('input');
             input.type = 'radio';
             input.name = 'no-reason';
@@ -988,11 +1000,166 @@
         document.querySelectorAll('input[name="no-reason"]').forEach((input) => {
             input.checked = input.value === savedReason;
         });
+        $('#no-reason-text').value = savedReason === 'autre' ? response.reason_text ?? '' : '';
+        resetCredibility();
+        reactToReason(false);
         $('#no-dialog').showModal();
     }
 
-    function switchToYes() {
-        if ($('#no-dialog').open) $('#no-dialog').close();
+    // Le champ libre n'apparaît que pour « Autre ».
+    function syncCustomReason() {
+        const isCustom = document.querySelector('input[name="no-reason"]:checked')?.value === 'autre';
+        $('#no-reason-custom').hidden = !isCustom;
+        $('#no-reason-text').setCustomValidity('');
+        return isCustom;
+    }
+
+    // Le barman juge l'excuse en direct : une phrase, une jauge de crédibilité, un bouton adapté.
+    const NO_DEFAULT_LEAD = 'Le canapé n’a pas besoin de toi. Nous, un peu. Dis-nous au moins pourquoi.';
+    const NO_VERDICTS = {
+        moitie: { score: 51, line: 'Une chance sur deux que ce soit vrai. On demandera à ta moitié.', confirm: 'Je retrouve ma moitié' },
+        fatigue: { score: 38, line: 'Après trois volants ? On y croit moyen.', confirm: 'Je vais me coucher' },
+        boulot: { score: 61, line: 'Tout le monde bosse demain. Mais bon, ça passe.', confirm: 'Je mets mon réveil' },
+        budget: { score: 89, line: 'Dur à contester. Même si quelqu’un t’en aurait payé une.', confirm: 'Je garde mes sous' },
+        blessure: { score: 27, line: 'Une blessure, comme par hasard à l’heure du bar.', confirm: 'Je vais boiter ailleurs' },
+        canape: { score: 77, line: 'Au moins c’est honnête. On respecte, sans approuver.', confirm: 'Je retrouve mon canapé' },
+        tournoi: { score: 100, line: 'Rien à redire, le tournoi c’est sacré. Ramène une médaille.', confirm: 'Je garde mes forces' },
+        pluie: { score: 4, line: 'Il pleut dehors, pas dans le bar.', confirm: 'Je rentre sous la pluie' },
+        mystere: { score: 0, line: 'Zéro explication, zéro crédibilité. L’enquête est ouverte.', confirm: 'Je file en douce' },
+        autre: { confirm: 'Je rentre quand même' },
+    };
+    let credValue = 0;
+    let credFrame = 0;
+    let credTimer = 0;
+    let noDialogLeaving = false;
+
+    function setLead(text, animated) {
+        const lead = $('#no-dialog-lead');
+        if (lead.textContent.trim() === text) return;
+        lead.textContent = text;
+        if (animated) replayAnimation(lead, 'is-swapped');
+    }
+
+    function drawCredibility(value) {
+        credValue = value;
+        $('#no-cred-fill').style.transform = `scaleX(${value / 100})`;
+        $('#no-cred-value').textContent = Math.round(value) + ' %';
+    }
+
+    function stopCredibility() {
+        cancelAnimationFrame(credFrame);
+        clearTimeout(credTimer);
+    }
+
+    function resetCredibility() {
+        stopCredibility();
+        credValue = 0;
+        $('#no-cred-fill').style.transform = 'scaleX(0)';
+        $('#no-cred-value').textContent = '?';
+        $('#no-cred').dataset.level = '';
+        $('#no-cred').setAttribute('aria-label', 'Crédibilité de ton excuse : pas encore jugée');
+    }
+
+    // La jauge monte à fond, puis retombe sur la vraie note.
+    function runCredibility(target, animated) {
+        stopCredibility();
+        const cred = $('#no-cred');
+        const settle = () => {
+            drawCredibility(target);
+            cred.dataset.level = target < 34 ? 'low' : target < 70 ? 'mid' : 'high';
+            cred.setAttribute('aria-label', `Crédibilité de ton excuse : ${target} %`);
+        };
+        if (!animated || reduceMotion) return settle();
+        cred.dataset.level = '';
+        const start = credValue;
+        const startedAt = performance.now();
+        const ease = (t) => 1 - (1 - t) ** 3;
+        const tick = (now) => {
+            const progress = Math.min((now - startedAt) / 760, 1);
+            if (progress >= 1) return settle();
+            drawCredibility(progress < 0.42
+                ? start + (100 - start) * ease(progress / 0.42)
+                : 100 + (target - 100) * ease((progress - 0.42) / 0.58));
+            credFrame = requestAnimationFrame(tick);
+        };
+        credFrame = requestAnimationFrame(tick);
+    }
+
+    // « Autre » : la note dépend du texte, donc la même excuse garde la même note.
+    function judgeCustomReason(animated) {
+        const text = $('#no-reason-text').value.trim();
+        if (!text) {
+            resetCredibility();
+            setLead('Vas-y, on t’écoute. Le comptoir est tout ouïe.', animated);
+            return;
+        }
+        const seed = Array.from(text).reduce((sum, character) => (sum * 31 + character.codePointAt(0)) % 9973, 7);
+        const score = 1 + (seed % 99);
+        setLead(score < 34
+            ? 'Personne n’y croit, mais bel effort.'
+            : score < 70 ? 'Ça se tient, à peu près.' : 'Trop beau pour être faux.', animated);
+        runCredibility(score, animated);
+    }
+
+    function reactToReason(animated = true) {
+        const key = document.querySelector('input[name="no-reason"]:checked')?.value;
+        const isCustom = syncCustomReason();
+        const confirm = $('#no-confirm');
+        const label = NO_VERDICTS[key]?.confirm ?? 'Oui, je rentre';
+        if (confirm.textContent !== label) {
+            confirm.textContent = label;
+            if (animated) replayAnimation(confirm, 'is-swapped');
+        }
+        if (!key) {
+            resetCredibility();
+            setLead(NO_DEFAULT_LEAD, false);
+        } else if (isCustom) {
+            judgeCustomReason(animated);
+        } else {
+            setLead(NO_VERDICTS[key].line, animated);
+            runCredibility(NO_VERDICTS[key].score, animated);
+        }
+    }
+
+    // Pendant qu'on écrit, la jauge s'affole ; elle s'arrête quand on fait une pause.
+    function onCustomReasonInput(event) {
+        event.target.setCustomValidity('');
+        stopCredibility();
+        if (!event.target.value.trim() || reduceMotion) {
+            judgeCustomReason(false);
+            return;
+        }
+        $('#no-cred').dataset.level = '';
+        drawCredibility(Math.random() * 100);
+        setLead('Le comptoir délibère…', false);
+        credTimer = setTimeout(() => judgeCustomReason(true), 550);
+    }
+
+    // Le panneau s'envole si tu viens, tombe si tu rentres.
+    function leaveNoDialog(direction) {
+        const dialog = $('#no-dialog');
+        if (reduceMotion || !dialog.open) {
+            dialog.close();
+            return Promise.resolve();
+        }
+        noDialogLeaving = true;
+        const end = direction === 'up' ? 'translateY(-110vh) rotate(-5deg)' : 'translateY(110vh) rotate(7deg)';
+        const moves = [
+            dialog.animate([{ transform: 'none' }, { transform: end }],
+                { duration: 320, easing: 'cubic-bezier(0.5, -0.2, 0.85, 0.4)', fill: 'forwards' }),
+            dialog.animate([{ opacity: 1 }, { opacity: 0 }],
+                { duration: 320, pseudoElement: '::backdrop', fill: 'forwards' }),
+        ];
+        return Promise.allSettled(moves.map((move) => move.finished)).then(() => {
+            dialog.close();
+            moves.forEach((move) => move.cancel());
+            noDialogLeaving = false;
+        });
+    }
+
+    async function switchToYes() {
+        if (noDialogLeaving) return;
+        if ($('#no-dialog').open) await leaveNoDialog('up');
         $('#toast').classList.remove('is-visible');
         clearTimeout(toastTimer);
         document.querySelector('.confetti')?.remove();
@@ -1027,12 +1194,20 @@
         }
     }
 
-    function confirmNo() {
-        if (!pendingNoName || !sharedVotesReady || !ensureCurrentWeek()) return;
+    async function confirmNo() {
+        if (noDialogLeaving || !pendingNoName || !sharedVotesReady || !ensureCurrentWeek()) return;
         const name = pendingNoName;
         const reason = document.querySelector('input[name="no-reason"]:checked')?.value || null;
-        $('#no-dialog').close();
-        saveResponse({ name, vote: 'no', venue: null, reason });
+        const field = $('#no-reason-text');
+        const reasonText = reason === 'autre' ? field.value.replace(/\s+/g, ' ').trim() : null;
+        if (reason === 'autre' && !reasonText) {
+            field.setCustomValidity('Écris ton excuse, ou choisis-en une autre.');
+            replayAnimation(field, 'is-shaking');
+            field.reportValidity();
+            return;
+        }
+        await leaveNoDialog('down');
+        saveResponse({ name, vote: 'no', venue: null, reason, reason_text: reasonText });
     }
 
     function handleSubmit(event) {
@@ -1093,8 +1268,18 @@
     function bindEvents() {
         $('#vote').addEventListener('submit', handleSubmit);
         $('#no-confirm').addEventListener('click', confirmNo);
+        $('#no-reasons').addEventListener('change', () => {
+            reactToReason();
+            if (!reduceMotion) navigator.vibrate?.(12); // Android seulement
+            if (!$('#no-reason-custom').hidden) $('#no-reason-text').focus();
+        });
+        $('#no-dialog').addEventListener('touchstart', () => {}, { passive: true }); // active l'effet d'appui sur iPhone
+        $('#no-reason-text').addEventListener('input', onCustomReasonInput);
+        $('#no-reason-text').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') { event.preventDefault(); confirmNo(); }
+        });
         $('#no-stay').addEventListener('click', switchToYes);
-        $('#no-dialog').addEventListener('close', () => { pendingNoName = null; });
+        $('#no-dialog').addEventListener('close', () => { pendingNoName = null; stopCredibility(); });
         $('#name').addEventListener('input', () => {
             $('#name').setCustomValidity('');
             updateSubmitState();

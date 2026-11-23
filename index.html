@@ -243,12 +243,27 @@
       <span class="tape" aria-hidden="true"></span>
       <div class="no-dialog-content">
         <h2 id="no-dialog-title">Tu es <em>sûr·e ?</em></h2>
-        <p class="no-dialog-lead" id="no-dialog-lead">
+        <p class="no-dialog-lead" id="no-dialog-lead" aria-live="polite">
           Le canapé n’a pas besoin de toi. Nous, un peu. Dis-nous au moins pourquoi.
         </p>
+        <div class="no-cred" id="no-cred" role="img" aria-label="Crédibilité de ton excuse : pas encore jugée">
+          <span class="no-cred-label">Crédibilité</span>
+          <span class="no-cred-track"><span class="no-cred-fill" id="no-cred-fill"></span></span>
+          <strong class="no-cred-value" id="no-cred-value">?</strong>
+        </div>
         <fieldset class="no-reasons" id="no-reasons">
           <legend>Ton motif (il sera affiché, assume)</legend>
         </fieldset>
+        <div class="no-reason-custom" id="no-reason-custom" hidden>
+          <input
+            id="no-reason-text"
+            type="text"
+            maxlength="60"
+            autocomplete="off"
+            aria-label="Ton excuse"
+            placeholder="Ex. : mon poisson rouge déprime"
+          />
+        </div>
         <div class="no-dialog-actions">
           <button type="button" class="no-stay" id="no-stay">Finalement, je viens</button>
           <button type="button" class="no-confirm" id="no-confirm">Oui, je rentre</button>
