@@ -67,10 +67,10 @@
         if (!reduceMotion) {
             if (vote === 'yes') {
                 setTimeout(() => erupt(layer, volcano), 700);
-                setTimeout(() => rumble(9), 700);
+                setTimeout(() => { if (layer.isConnected) rumble(9); }, 700);
             } else if (vote === 'maybe') {
-                setTimeout(() => rumble(4), 700);
-                setTimeout(() => rumble(4), 1500);
+                setTimeout(() => { if (layer.isConnected) rumble(4); }, 700);
+                setTimeout(() => { if (layer.isConnected) rumble(4); }, 1500);
             }
         }
         setTimeout(() => {
@@ -1667,6 +1667,44 @@
         });
     }
 
+    // Un tap n'importe où (ou Échap) coupe la scène. Le tap est absorbé : il n'active rien sous l'animation.
+    function allowSkip(layer) {
+        if (!layer?.isConnected) return () => {};
+        const startedAt = performance.now();
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'scene-skip';
+        button.textContent = 'Passer la scène';
+        layer.append(button);
+
+        let skipped = false;
+        const skip = () => {
+            if (skipped || !layer.isConnected) return;
+            skipped = true;
+            // Le site reprend sa place tout de suite s'il était en train de trembler.
+            for (const block of document.querySelectorAll('body > header, body > main')) {
+                block.getAnimations().forEach((animation) => {
+                    if (!(animation instanceof CSSAnimation) && !(animation instanceof CSSTransition)) animation.cancel();
+                });
+            }
+            if (reduceMotion) return layer.remove();
+            layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out', fill: 'forwards' })
+                .finished.finally(() => layer.remove());
+        };
+        const onClick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (performance.now() - startedAt >= 350) skip(); // évite qu'un double tap sur « valider » coupe la scène
+        };
+        const onKey = (event) => { if (event.key === 'Escape') skip(); };
+        document.addEventListener('click', onClick, true);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('click', onClick, true);
+            document.removeEventListener('keydown', onKey);
+        };
+    }
+
     window.leDernierSetSpecial = {
         find(name) {
             const person = findPerson(name);
@@ -1676,7 +1714,9 @@
                 celebrate(vote) {
                     const before = new Set(document.body.children);
                     person.celebrate(vote);
-                    return untilRemoved([...document.body.children].find((el) => !before.has(el)));
+                    const layer = [...document.body.children].find((el) => !before.has(el));
+                    const stopSkip = allowSkip(layer);
+                    return untilRemoved(layer).then(stopSkip);
                 },
             };
         },

@@ -1466,7 +1466,7 @@ button.attendance-hint {
     letter-spacing: 1px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    animation: match-vs-pulse 7s ease-in-out 3s infinite;
+    animation: match-vs-pulse 4s ease-in-out 3s infinite;
 }
 
 .crew-card .match-vs:hover {
@@ -1481,7 +1481,7 @@ button.attendance-hint {
 /* De temps en temps, le « vs » s'illumine et grossit, comme pour dire « touche-moi » */
 @keyframes match-vs-pulse {
     0%, 86%, 100% { scale: 1; color: #c1cbbf; }
-    90% { scale: 1.45; color: var(--yellow); }
+    90% { scale: 2; color: var(--yellow); }
     94% { scale: 0.95; }
 }
 
@@ -6211,6 +6211,38 @@ button.attendance-hint {
     .rage-say.is-shown,
     .rage-beer,
     .rage-card {
+        animation: none;
+    }
+}
+
+/* Passer une scène : un tap n'importe où, cette pastille le rappelle */
+.scene-skip {
+    position: absolute;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 60;
+    min-height: 30px;
+    padding: 5px 11px;
+    border: 1px solid rgb(255 255 255 / 35%);
+    border-radius: 999px;
+    background: rgb(20 40 30 / 78%);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    pointer-events: auto;
+    animation: scene-skip-in 0.3s ease-out 0.7s both;
+}
+
+@keyframes scene-skip-in {
+    from { opacity: 0; transform: translateY(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scene-skip {
         animation: none;
     }
 }
