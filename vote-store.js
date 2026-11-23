@@ -5,7 +5,12 @@
         if (window.supabase?.createClient) return Promise.resolve();
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+            // Version figée (et non « @2 », qui suit toujours la dernière) : une mise à jour de la bibliothèque
+            // ne peut pas casser le vote du jeudi sans prévenir. L'empreinte (integrity) fait refuser le fichier
+            // au navigateur s'il était modifié sur le CDN. Pour monter de version : changer l'URL ET l'empreinte.
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
+            script.integrity = 'sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O';
+            script.crossOrigin = 'anonymous';
             script.onload = () => {
                 if (window.supabase?.createClient) resolve();
                 else reject(new Error('Le client Supabase est indisponible.'));

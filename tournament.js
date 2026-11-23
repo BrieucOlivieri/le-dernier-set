@@ -561,6 +561,9 @@
     document.addEventListener('touchend', (event) => finishGesture(point(event.changedTouches[0])), { passive: true });
     document.addEventListener('touchcancel', () => touchLast && finishGesture(touchLast), { passive: true });
 
+    // 6. Le « vs » du match des bars, qui pulse de temps en temps : un tap lance le tournoi.
+    document.getElementById('match-vs')?.addEventListener('click', startTournament);
+
     // Pour tester depuis la console : leDernierSetTournoi()
     window.leDernierSetTournoi = startTournament;
 })();

@@ -1234,6 +1234,342 @@
         }, (reduceMotion ? 0 : bannerAt) + 2900);
     }
 
+    // Alex, le rageux du terrain (et N3 en mixte) : il fait une faute, « OUT ! », insultes (censurées) et le site tremble.
+    // Je viens : il se maîtrise, pose la raquette et va boire un coup pour décompresser.
+    // Peut-être : il arme, stoppe trop tard et fêle l'écran. Je rentre : la raquette finit sur sa cheville.
+    // Animations légères (transform et opacity) pour rester fluide sur téléphone.
+    const RAGE_TEXTS = {
+        yes: {
+            title: 'Alex se maîtrise. Il vient !',
+            details: [
+                'N3 en mixte, et une bière pour décompresser.',
+                'Aucune raquette n’a été blessée ce soir.',
+                'Thérapie du jour : une pinte.',
+            ],
+        },
+        maybe: {
+            title: 'Alex hésite…',
+            details: ['L’écran a eu chaud.', 'Il décidera quand sa raquette aura arrêté de trembler.'],
+        },
+        no: {
+            title: 'Alex rentre.',
+            details: ['Motif : agression de cheville avec sa propre raquette.', 'La cheville porte plainte. La raquette aussi.'],
+        },
+    };
+    const RAGE_RACKET_TOP = `
+        <svg viewBox="0 0 120 170" aria-hidden="true">
+            <defs>
+                <linearGradient id="rage-frame" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#c8202a"/>
+                </linearGradient>
+            </defs>
+            <ellipse cx="60" cy="72" rx="47" ry="64" fill="rgb(255 255 255 / 18%)"/>
+            <path d="M28 20V124M44 10V134M60 8V136M76 10V134M92 20V124M14 42H106M13 58H107M13 74H107M14 90H106M20 106H100" stroke="#fffdf7" stroke-width="2"/>
+            <ellipse cx="60" cy="72" rx="47" ry="64" fill="none" stroke="url(#rage-frame)" stroke-width="9"/>
+            <path d="M44 132 L60 150 L76 132 L68 136 L60 142 L52 136Z" fill="#c8202a"/>
+            <path d="M56 146H64V162L60 158L56 170Z" fill="#3a3f48"/>
+        </svg>`;
+    const RAGE_RACKET_BOTTOM = `
+        <svg viewBox="0 0 120 130" aria-hidden="true">
+            <path d="M56 12L60 0L64 6V72H56Z" fill="#3a3f48"/>
+            <rect x="51" y="70" width="18" height="56" rx="6" fill="#315d46"/>
+            <path d="M51 82L69 74M51 96L69 88M51 110L69 102" stroke="#f6c94a" stroke-width="3"/>
+        </svg>`;
+
+    // La carte finale : licence N3 (oui), carton jaune (peut-être) ou carton rouge (non).
+    function rageCard(vote, text) {
+        const card = document.createElement('div');
+        card.className = 'rage-card rage-card-' + vote;
+        const head = document.createElement('p');
+        head.className = 'rage-card-head';
+        const big = document.createElement('b');
+        big.className = 'rage-card-big';
+        const facts = document.createElement('p');
+        facts.className = 'rage-card-facts';
+        if (vote === 'yes') {
+            head.textContent = 'Licence joueur · Alex · Mixte';
+            big.textContent = 'N3';
+            facts.textContent = 'Classement rouge · Raquettes cassées ce soir : 0';
+        } else if (vote === 'maybe') {
+            head.textContent = 'Carton jaune · Alex';
+            big.textContent = '1er avertissement';
+            facts.textContent = 'Motif : écran légèrement fissuré';
+        } else {
+            head.textContent = 'Carton rouge · Alex';
+            big.textContent = 'Disqualifié';
+            facts.textContent = 'Victime : sa propre cheville';
+        }
+        const title = document.createElement('strong');
+        title.textContent = text.title;
+        const detail = document.createElement('span');
+        detail.textContent = text.details[Math.floor(Math.random() * text.details.length)];
+        card.append(head, big, title, detail, facts);
+        return card;
+    }
+
+    // Fissures qui rayonnent depuis le point d'impact, avec quelques éclats de verre.
+    function rageCracks(layer, x, y, small = false) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'rage-cracks');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('viewBox', `0 0 ${innerWidth} ${innerHeight}`);
+        const reach = Math.hypot(innerWidth, innerHeight);
+        const rings = [[], []];
+        const rays = small ? 6 : 15;
+        for (let i = 0; i < rays; i++) {
+            let angle = (i / rays) * Math.PI * 2 + rand(-0.25, 0.25);
+            let distance = 0;
+            let px = x;
+            let py = y;
+            let d = `M${x} ${y}`;
+            const length = small ? rand(45, 115) : reach * rand(0.28, 0.72);
+            let step = 0;
+            while (distance < length) {
+                distance += rand(26, 74);
+                angle += rand(-0.3, 0.3);
+                px = x + Math.cos(angle) * distance;
+                py = y + Math.sin(angle) * distance;
+                d += ` L${px.toFixed(1)} ${py.toFixed(1)}`;
+                if (step < 2) rings[step].push([px, py]);
+                step++;
+            }
+            const path = document.createElementNS(NS, 'path');
+            path.setAttribute('d', d);
+            svg.append(path);
+        }
+        for (const ring of small ? [] : rings) {
+            const path = document.createElementNS(NS, 'path');
+            path.setAttribute('d', 'M' + ring.map(([a, b]) => `${a.toFixed(1)} ${b.toFixed(1)}`).join(' L') + 'Z');
+            path.setAttribute('class', 'rage-crack-ring');
+            svg.append(path);
+        }
+        layer.append(svg);
+        if (reduceMotion) return;
+        svg.style.transformOrigin = `${x}px ${y}px`;
+        svg.animate([{ transform: 'scale(0.15)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
+            { duration: 130, easing: 'ease-out' });
+        for (let i = 0; i < (small ? 0 : 7); i++) {
+            const shard = document.createElement('span');
+            shard.className = 'rage-shard';
+            shard.style.left = x + 'px';
+            shard.style.top = y + 'px';
+            layer.append(shard);
+            const dx = rand(-0.42, 0.42) * innerWidth;
+            shard.animate(
+                [{ transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+                    { transform: `translate(${dx * 0.6}px, ${rand(-80, 10)}px) rotate(${rand(-150, 150)}deg)`, opacity: 1, offset: 0.3 },
+                    { transform: `translate(${dx}px, ${innerHeight * 0.7}px) rotate(${rand(-540, 540)}deg)`, opacity: 0 }],
+                { duration: rand(900, 1400), easing: 'ease-in', fill: 'both' },
+            ).finished.then(() => shard.remove(), () => {});
+        }
+    }
+
+    function celebrateAlex(vote) {
+        document.querySelector('.rage')?.remove();
+        const text = RAGE_TEXTS[vote] || RAGE_TEXTS.yes;
+        const layer = document.createElement('div');
+        layer.className = 'rage rage-' + vote;
+        layer.setAttribute('role', 'status');
+        layer.innerHTML = '<span class="rage-tint" aria-hidden="true"></span><span class="rage-zen" aria-hidden="true"></span>'
+            + '<div class="rage-meter" aria-hidden="true"><p><span>Rage-o-mètre</span><b>0 %</b></p><span class="rage-bar"><i></i></span></div>'
+            + '<div class="rage-court" aria-hidden="true"><span class="rage-line"></span><span class="rage-out">OUT !</span></div>';
+        const face = emoji('steam', 'rage-face');
+        const bubble = document.createElement('span');
+        bubble.className = 'rage-say';
+        layer.append(face, bubble);
+        document.body.append(layer);
+
+        const W = innerWidth;
+        const H = innerHeight;
+        const at = (ms, fn) => setTimeout(() => { if (layer.isConnected) fn(); }, ms);
+        const meterValue = layer.querySelector('.rage-meter b');
+        const meterCover = layer.querySelector('.rage-bar i');
+        const setRage = (percent, label = percent + ' %') => {
+            meterValue.textContent = label;
+            meterCover.style.transform = `scaleX(${1 - Math.min(percent, 100) / 100})`;
+            layer.style.setProperty('--rage', Math.min(percent, 100) / 100);
+        };
+        const say = (words) => {
+            bubble.textContent = words;
+            bubble.classList.remove('is-shown');
+            void bubble.offsetWidth;
+            bubble.classList.add('is-shown');
+        };
+        const setFace = (name) => { face.src = 'assets/emoji/' + name + '.svg'; };
+
+        const showCard = () => {
+            layer.classList.add('is-calm');
+            bubble.classList.remove('is-shown');
+            layer.append(rageCard(vote, text));
+        };
+        const leave = (delay) => setTimeout(() => {
+            layer.classList.add('is-leaving');
+            pageShakes.forEach((animation) => animation.cancel());
+            setTimeout(() => layer.remove(), 600);
+        }, delay);
+
+        // Sans animation : directement le verdict.
+        const pageShakes = [];
+        if (reduceMotion) {
+            layer.querySelector('.rage-court').remove();
+            if (vote === 'yes') layer.classList.add('is-zen');
+            setRage(vote === 'yes' ? 0 : vote === 'maybe' ? 62 : 100, vote === 'yes' ? '0 %' : vote === 'maybe' ? '62 %' : '9 000 %');
+            setFace(vote === 'yes' ? 'relieved' : vote === 'maybe' ? 'exhale' : 'pleading');
+            showCard();
+            leave(3600);
+            return;
+        }
+
+        // C'est tout le site qui tremble avec lui.
+        const shakePage = (strength, duration) => {
+            for (const block of document.querySelectorAll('body > header, body > main')) {
+                const frames = [];
+                for (let i = 0; i < 8; i++) {
+                    frames.push({ translate: `${rand(-strength, strength)}px ${rand(-strength, strength)}px` });
+                }
+                frames.unshift({ translate: '0 0' });
+                frames.push({ translate: '0 0' });
+                pageShakes.push(block.animate(frames, { duration, easing: 'linear' }));
+            }
+        };
+
+        // 1. Le volant tombe pile sur la ligne… « OUT ! »
+        const court = layer.querySelector('.rage-court');
+        const shuttle = emoji('shuttle', 'rage-shuttle');
+        court.append(shuttle);
+        shuttle.animate(
+            [{ transform: `translateY(${-H * 0.32}px) rotate(70deg)` }, { transform: 'translateY(0) rotate(90deg)' },
+                { transform: 'translateY(-10px) rotate(96deg)', offset: 0.86 }, { transform: 'translateY(0) rotate(90deg)' }],
+            { duration: 620, delay: 200, easing: 'ease-in', fill: 'both' },
+        );
+        at(880, () => court.classList.add('is-called'));
+        at(1250, () => { face.classList.add('is-in'); say('NON MAIS SÉRIEUX ?!'); setRage(18); });
+        at(1750, () => { setFace('angry'); say('TA M█RE LA P███ !!!'); setRage(47); shakePage(2, 450); });
+        at(2350, () => { setFace('rage'); say('#@%§ DE VOLANT DE M███E !'); setRage(86); shakePage(4, 550); });
+
+        // La raquette, en deux morceaux pour pouvoir casser.
+        const racket = document.createElement('div');
+        racket.className = 'rage-racket';
+        racket.innerHTML = `<span class="rage-racket-top">${RAGE_RACKET_TOP}</span><span class="rage-racket-bottom">${RAGE_RACKET_BOTTOM}</span>`;
+        layer.append(racket);
+        const length = racket.offsetHeight;
+        const width = racket.offsetWidth;
+        // Place la raquette pour que sa tête touche le point (hx, hy) avec l'angle voulu.
+        const aimed = (hx, hy, degrees, shiftX = 0, shiftY = 0) => {
+            const rad = (degrees * Math.PI) / 180;
+            const pivotX = hx - Math.sin(rad) * length * 0.75;
+            const pivotY = hy + Math.cos(rad) * length * 0.75;
+            return `translate(${pivotX - width / 2 + shiftX}px, ${pivotY - length + shiftY}px) rotate(${degrees}deg)`;
+        };
+        const raise = (hx, hy) => racket.animate(
+            [{ transform: aimed(hx, hy, 95, W * 1.7, -H * 0.1) }, { transform: aimed(hx, hy, 58, W * 0.2, -H * 0.05) }],
+            { duration: 320, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1)', fill: 'both' },
+        );
+        const slam = (hx, hy, then) => {
+            racket.animate(
+                [{ transform: aimed(hx, hy, 58, W * 0.2, -H * 0.05) }, { transform: aimed(hx, hy, -14) }],
+                { duration: 130, easing: 'cubic-bezier(0.7, 0, 1, 0.6)', fill: 'forwards' },
+            ).finished.then(() => {
+                if (!layer.isConnected) return;
+                const boom = emoji('boom', 'rage-boom');
+                boom.style.left = hx + 'px';
+                boom.style.top = hy + 'px';
+                layer.append(boom);
+                boom.animate([{ transform: 'translate(-50%, -50%) scale(0.2)', opacity: 1 },
+                    { transform: 'translate(-50%, -50%) scale(1.25)', opacity: 1, offset: 0.45 },
+                    { transform: 'translate(-50%, -50%) scale(1.5)', opacity: 0 }], { duration: 480, fill: 'both' });
+                // La raquette casse en deux et les morceaux tombent.
+                racket.querySelector('.rage-racket-top').animate(
+                    [{ transform: 'none', opacity: 1 }, { transform: `translate(${-W * 0.3}px, ${H * 0.8}px) rotate(-260deg)`, opacity: 0.9 }],
+                    { duration: 950, easing: 'cubic-bezier(0.4, 0, 0.9, 0.7)', fill: 'forwards' },
+                );
+                racket.querySelector('.rage-racket-bottom').animate(
+                    [{ transform: 'none', opacity: 1 }, { transform: `translate(${W * 0.28}px, ${H * 0.7}px) rotate(210deg)`, opacity: 0.9 }],
+                    { duration: 850, easing: 'cubic-bezier(0.4, 0, 0.9, 0.7)', fill: 'forwards' },
+                );
+                then();
+            }, () => {});
+        };
+
+        let cardAt;
+        const hit = [W / 2, H * 0.44];
+        const lowerRacket = () => {
+            racket.classList.remove('is-trembling');
+            racket.animate([{ transform: aimed(...hit, 58, W * 0.2, -H * 0.05) }, { transform: aimed(...hit, 95, W * 1.7, H * 0.2) }],
+                { duration: 320, easing: 'ease-in', fill: 'forwards' });
+        };
+        if (vote === 'yes') {
+            // 2. Il arme… se retient, respire, pose la raquette et va boire un coup.
+            at(2850, () => { setRage(100, '9 000 %'); layer.classList.add('is-maxed'); court.classList.add('is-gone'); say('JE VAIS LA CASSER…'); shakePage(5, 420); raise(...hit); });
+            at(3170, () => racket.classList.add('is-trembling'));
+            const beer = emoji('beer', 'rage-beer');
+            const ring = document.createElement('span');
+            ring.className = 'rage-breath';
+            at(3380, () => layer.append(ring));
+            at(3440, () => { layer.classList.remove('is-maxed'); ring.classList.add('is-in'); setFace('angry'); say('Inspire…'); setRage(58); });
+            at(4050, () => { ring.classList.remove('is-in'); setFace('exhale'); say('Expire…'); setRage(16); lowerRacket(); });
+            at(4600, () => {
+                ring.remove();
+                setRage(0);
+                layer.classList.add('is-zen');
+                setFace('relieved');
+                say('Bon. Je vais boire un coup.');
+                layer.append(beer);
+            });
+            at(5350, () => {
+                const b = beer.getBoundingClientRect();
+                const f = face.getBoundingClientRect();
+                const dx = Math.min(f.right + b.width * 0.2, W - b.width * 0.34) - (b.left + b.width / 2);
+                const dy = f.top + f.height / 2 - (b.top + b.height / 2);
+                beer.animate([{ transform: 'none' }, { transform: `translate(${dx}px, ${dy}px) scale(0.6) rotate(-12deg)` }],
+                    { duration: 380, easing: 'cubic-bezier(0.3, 1.2, 0.5, 1)', fill: 'forwards' });
+            });
+            cardAt = 5450;
+        } else if (vote === 'maybe') {
+            // 2. Il arme, stoppe trop tard : l'écran se fêle juste un peu.
+            at(2850, () => { setRage(100, '9 000 %'); layer.classList.add('is-maxed'); court.classList.add('is-gone'); say('JE LA CASSE OU PAS ?'); raise(...hit); });
+            at(3170, () => racket.classList.add('is-trembling'));
+            at(3850, () => {
+                racket.classList.remove('is-trembling');
+                racket.animate([{ transform: aimed(...hit, 58, W * 0.2, -H * 0.05) }, { transform: aimed(...hit, -14) }],
+                    { duration: 130, easing: 'cubic-bezier(0.7, 0, 1, 0.6)', fill: 'forwards' });
+            });
+            at(3985, () => { layer.classList.remove('is-maxed'); rageCracks(layer, ...hit, true); shakePage(3, 180); setFace('exhale'); say('…oups.'); setRage(62); });
+            at(4700, () => racket.animate([{ transform: aimed(...hit, -14) }, { transform: aimed(...hit, 95, W * 1.7, H * 0.2) }],
+                { duration: 340, easing: 'ease-in', fill: 'forwards' }));
+            cardAt = 5000;
+        } else {
+            // 2. Il frappe sa propre cheville. CLONK.
+            const foot = emoji('foot', 'rage-foot');
+            layer.append(foot);
+            at(2950, () => { setRage(100, '9 000 %'); layer.classList.add('is-maxed'); court.classList.add('is-gone'); foot.classList.add('is-in'); say('RAAAH !!!'); });
+            const hitPoint = () => [W / 2 - foot.offsetWidth * 0.08, foot.offsetTop + foot.offsetHeight * 0.3];
+            at(3100, () => raise(...hitPoint()));
+            at(3600, () => slam(...hitPoint(), () => {
+                layer.classList.add('is-flash');
+                foot.classList.add('is-hit');
+                const clonk = document.createElement('span');
+                clonk.className = 'rage-clonk';
+                clonk.textContent = 'CLONK !';
+                layer.append(clonk);
+                shakePage(9, 420);
+                setFace('pleading');
+                say('AÏE AÏE AÏE !');
+            }));
+            at(4300, () => {
+                const bandage = emoji('bandage', 'rage-bandage');
+                bandage.style.left = W / 2 + 'px';
+                bandage.style.top = foot.offsetTop + foot.offsetHeight * 0.34 + 'px';
+                layer.append(bandage);
+            });
+            cardAt = 5000;
+        }
+
+        at(cardAt, showCard);
+        leave(cardAt + 3100);
+    }
+
     const PEOPLE = {
         naya: {
             celebrate: celebrateNaya,
@@ -1281,6 +1617,16 @@
                 no: 'Thibaut rentre voir ses chats.',
             },
         },
+        alex: {
+            celebrate: celebrateAlex,
+            icon: 'rage',
+            badge: 'rage',
+            live: {
+                yes: 'Alex vient décompresser au bar.',
+                maybe: 'Alex hésite (planquez les raquettes).',
+                no: 'Alex rentre soigner sa cheville.',
+            },
+        },
         maxime: {
             celebrate: celebrateMaxime,
             icon: 'medal',
@@ -1295,7 +1641,9 @@
 
     // Surnoms et noms de famille reconnus n'importe où dans le nom saisi (« O. Roques », « Oliv »…).
     const ALIASES = {
-        olivier: 'olivier', oliv: 'olivier', roques: 'olivier',
+        max : 'maxime', maxime: 'maxime', maxou: 'maxime',
+        olivier: 'olivier', oliv: 'olivier', roques: 'olivier', oli : 'olivier',
+        alex: 'alex', alexandre: 'alex',
         thib: 'thibaut', thibs: 'thibaut', thibault: 'thibaut', thibaud: 'thibaut',
     };
 
